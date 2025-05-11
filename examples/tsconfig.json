@@ -1,0 +1,21 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "baseUrl": "..",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "paths": {
+      "@slashfi/query-builder": [
+        "src"
+      ],
+      "@slashfi/query-builder/*": [
+        "src/*"
+      ]
+    }
+  },
+  "include": [
+    "../src",
+    "./**/*.ts"
+  ]
+}

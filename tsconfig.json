@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib",
+    "emitDeclarationOnly": true,
+    "tsBuildInfoFile": "lib/.tsbuildinfo",
+    "target": "ESNext",
+    "module": "ESNext",
+    "strict": true,
+    "strictNullChecks": true,
+    "exactOptionalPropertyTypes": true,
+    "esModuleInterop": true,
+    "declaration": true,
+    "declarationMap": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "incremental": true,
+    "lib": ["ESNext"],
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": false,
+    "composite": true,
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@/core-utils": ["src/core-utils"],
+      "@/core-utils/*": ["src/core-utils/*"],
+    }
+  },
+  "include": [
+    "src",
+    "tsconfig.config-loader.json"
+  ],
+  "exclude": [
+    "node_modules",
+    "lib"
+  ]
+}

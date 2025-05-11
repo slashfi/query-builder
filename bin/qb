@@ -1,0 +1,2 @@
+#!/bin/sh
+NODE_OPTIONS="--max-old-space-size=32000" exec node "$(dirname "$0")/../lib/cli/index.js" "$@"

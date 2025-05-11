@@ -1,0 +1,17 @@
+{
+  "name": "query-builder-examples",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "db:up": "docker-compose up -d",
+    "db:down": "docker-compose down -v",
+    "db:restart": "npm run db:down && npm run db:up",
+    "db:logs": "docker-compose logs -f",
+    "test": "npm run db:up && npm run test:setup && vitest",
+    "test:watch": "vitest watch",
+    "test:cleanup": "npm run db:down"
+  },
+  "dependencies": {
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  crdb:
+    image: cockroachdb/cockroach:v23.1.13
+    ports:
+      - "26207:26257" # SQL port
+      - "8080:8080"   # Admin UI
+    command: start-single-node --insecure
+    environment:
+      COCKROACH_DATABASE: querybuilder
+      COCKROACH_USER: root
+      TZ: UTC
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health?ready=1"]
+      interval: 3s
+      timeout: 1s
+      retries: 5
