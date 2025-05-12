@@ -4,17 +4,17 @@ import type {
   BaseDbDiscriminator,
   DataTypeBase,
   TableColumnBase,
-} from './Base';
+} from './base';
 
+import { createAstNode } from './create-ast-node';
 import {
   type DataTypeTabularColumns,
   type allDataTypes,
   createDataTypeTabularColumns,
-} from './DataType';
-import type { EntityTarget } from './EntityTarget';
-import { serializeValueForDataType } from './InsertBuilder';
-import { createAstNode } from './createAstNode';
+} from './data-type';
+import type { EntityTarget } from './entity-target';
 import type { BuildColumn, BuildTable } from './from-builder';
+import { serializeValueForDataType } from './insert-builder';
 import { type SqlString, sql } from './sql-string';
 
 export interface TableNodeForValues<DataType extends DataTypeTabularColumns>

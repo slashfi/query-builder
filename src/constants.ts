@@ -1,5 +1,5 @@
-import { constantForInteger } from './constants/ConstantForInteger';
-import { constantForVarchar } from './constants/ConstantForVarchar';
+import { constantForInteger } from './constants/constant-for-integer';
+import { constantForVarchar } from './constants/constant-for-varchar';
 import { createExpressionBuilder } from './expression-builder';
 
 export function constantInt<Value extends number>(value: Value) {

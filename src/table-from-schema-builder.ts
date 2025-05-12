@@ -6,8 +6,8 @@ import type {
   OriginalReferenceableObject,
   TypecheckError,
 } from '@/core-utils';
-import type { BaseDbDiscriminator, TableBase, TableColumnBase } from './Base';
 import { getAstNodeRepository } from './ast-node-repository';
+import type { BaseDbDiscriminator, TableBase, TableColumnBase } from './base';
 import type { DbConfig } from './db-helper';
 import { createIndexBuilder } from './ddl/index-builder';
 import type {
@@ -17,7 +17,7 @@ import type {
 } from './ddl/index-builder/index-definition';
 import type { DdlIndexDefinition } from './ddl/table';
 import { createExpressionBuilder } from './expression-builder';
-import { expressionColumn } from './expressions/ExpressionColumn';
+import { expressionColumn } from './expressions/expression-column';
 import {
   type TableColumnBuilder,
   type TableColumnBuilderInferrer,

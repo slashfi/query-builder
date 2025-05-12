@@ -1,16 +1,16 @@
-import type { BaseDbDiscriminator } from '../Base';
-import type { ExpressionBuilder } from '../ExpressionBuilder';
 import {
   type QueryBuilderParams,
   type SetQbParams,
   updateQueryBuilderParams,
 } from '../QueryBuilderParams';
+import type { BaseDbDiscriminator } from '../base';
 import {
   type OrderByListItem,
   clauseForOrderByList,
-} from '../clauses/ClauseForOrderBy';
+} from '../clauses/clause-for-order-by';
+import type { ExpressionBuilder } from '../expression-builder-type';
 import type { AssertSqlQueryBuilder } from '../query-builder-asserter';
-import { createSqlQueryBuilder } from './SqlQueryBuilder';
+import { createSqlQueryBuilder } from './sql-query-builder';
 
 export const createSqlQueryBuilderOrderBy = <S extends BaseDbDiscriminator>(
   params: QueryBuilderParams<S>

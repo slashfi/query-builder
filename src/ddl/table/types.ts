@@ -1,6 +1,6 @@
-import type { DataTypeBase, ExpressionBase } from '../../Base';
-import type { DataTypeBoolean } from '../../DataType';
-import type { ExpressionBuilderShape } from '../../ExpressionBuilder';
+import type { DataTypeBase, ExpressionBase } from '../../base';
+import type { DataTypeBoolean } from '../../data-type';
+import type { ExpressionBuilderShape } from '../../expression-builder-type';
 import type { SqlString } from '../../sql-string';
 
 /**

@@ -3,15 +3,18 @@ import type {
   BaseDbDiscriminator,
   DataTypeBase,
   ExpressionBase,
-} from '../Base';
-import type { GetNonNullableDataType, MakeDataTypeNullable } from '../DataType';
-import type { ExpressionBuilder } from '../ExpressionBuilder';
+} from '../base';
+import type {
+  GetNonNullableDataType,
+  MakeDataTypeNullable,
+} from '../data-type';
 import { createExpressionBuilder } from '../expression-builder';
+import type { ExpressionBuilder } from '../expression-builder-type';
 import {
   type ExpressionAggregateSum,
   type ValidDataTypesForAggregateSum,
   expressionSum,
-} from '../expressions/ExpressionFnSum';
+} from '../expressions/expression-fn-sum';
 
 export const sum: Sum = (builder) => {
   const b = createExpressionBuilder(expressionSum.create(builder._expression));

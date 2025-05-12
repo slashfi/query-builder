@@ -1,28 +1,28 @@
-import type { BaseDbDiscriminator, ClauseBase, ExpressionBase } from './Base';
-import type { ConditionParams } from './ConditionParams';
-import type { QueryBuilderParams } from './QueryBuilderParams';
 import { getNodeName } from './ast-node-repository';
-import { clauseFromExpression } from './clauses/ClauseFromExpression';
-import { constantForArray } from './constants/ConstantForArray';
-import { constantForBoolean } from './constants/ConstantForBoolean';
-import { constantForFloat } from './constants/ConstantForFloat';
-import { constantForInteger } from './constants/ConstantForInteger';
-import { constantForJson } from './constants/ConstantForJson';
-import { constantForTimestamp } from './constants/ConstantForTimestamp';
-import { constantForVarchar } from './constants/ConstantForVarchar';
-import { expressionBracket } from './expressions/ExpressionBracket';
-import { expressionColumn } from './expressions/ExpressionColumn';
-import { expressionIf } from './expressions/ExpressionIf';
-import { expressionLeftRightBinary } from './expressions/ExpressionLeftRightBinary';
-import { expressionRightUnaryBinary } from './expressions/ExpressionRightUnaryBinary';
-import { expressionSelectColumns } from './expressions/ExpressionSelectColumns';
+import type { BaseDbDiscriminator, ClauseBase, ExpressionBase } from './base';
+import { clauseFromExpression } from './clauses/clause-from-expression';
+import type { ConditionParams } from './conditional-params';
+import { constantForArray } from './constants/constant-for-array';
+import { constantForBoolean } from './constants/constant-for-boolean';
+import { constantForFloat } from './constants/constant-for-float';
+import { constantForInteger } from './constants/constant-for-integer';
+import { constantForJson } from './constants/constant-for-json';
+import { constantForTimestamp } from './constants/constant-for-timestamp';
+import { constantForVarchar } from './constants/constant-for-varchar';
+import { expressionBracket } from './expressions/expression-bracket';
+import { expressionColumn } from './expressions/expression-column';
+import { expressionIf } from './expressions/expression-if';
+import { expressionLeftRightBinary } from './expressions/expression-left-right-binary';
+import { expressionRightUnaryBinary } from './expressions/expression-right-unary-binary';
+import { expressionSelectColumns } from './expressions/expression-select-columns';
 import {
   type BinaryComparatorOptions,
   type OperatorBinaryComparator,
   operatorBinaryComparator,
-} from './operators/OperatorBinaryComparator';
-import { operatorBinaryLogical } from './operators/OperatorBinaryLogical';
-import { operatorUnaryIs } from './operators/OperatorUnaryIs';
+} from './operators/operator-binary-comparator';
+import { operatorBinaryLogical } from './operators/operator-binary-logical';
+import { operatorUnaryIs } from './operators/operator-unary-is';
+import type { QueryBuilderParams } from './query-builder-params';
 
 export type TypeNarrowResult<T = any> = {
   passed: boolean;

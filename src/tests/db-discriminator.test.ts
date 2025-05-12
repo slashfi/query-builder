@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { constantForBoolean } from '../constants/ConstantForBoolean';
+import { constantForBoolean } from '../constants/constant-for-boolean';
 import { createDb, createDbDiscriminator } from '../db-helper';
 
 describe('db discriminator', () => {

@@ -1,11 +1,11 @@
 import type { TypecheckError } from '@/core-utils';
-import type { BaseDbDiscriminator, DataTypeBase } from '../Base';
-import type { ExpressionBuilder } from '../ExpressionBuilder';
+import type { BaseDbDiscriminator, DataTypeBase } from '../base';
 import { createExpressionBuilder } from '../expression-builder';
+import type { ExpressionBuilder } from '../expression-builder-type';
 import {
   type ExpressionAggregateCount,
   expressionCount,
-} from '../expressions/ExpressionFnCount';
+} from '../expressions/expression-fn-count';
 
 export const count: Count = (builder) => {
   const b = createExpressionBuilder(

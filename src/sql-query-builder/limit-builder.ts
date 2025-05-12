@@ -1,11 +1,11 @@
-import type { BaseDbDiscriminator } from '../Base';
 import {
   type QueryBuilderParams,
   type SetQbParams,
   updateQueryBuilderParams,
 } from '../QueryBuilderParams';
+import type { BaseDbDiscriminator } from '../base';
 import type { AssertSqlQueryBuilder } from '../query-builder-asserter';
-import { createSqlQueryBuilder } from './SqlQueryBuilder';
+import { createSqlQueryBuilder } from './sql-query-builder';
 
 export function createSqlQueryBuilderLimit<S extends BaseDbDiscriminator>(
   params: QueryBuilderParams<S>

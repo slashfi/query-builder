@@ -6,12 +6,9 @@ import {
   type TypecheckError,
   filterMap,
 } from '@/core-utils';
-import type { BaseDbDiscriminator, DataTypeBase, ExpressionBase } from './Base';
-import type { DataTypeBoolean, DataTypes, allDataTypes } from './DataType';
-import type { ExpressionBuilderShape } from './ExpressionBuilder';
-import { serializeValueForDataType } from './InsertBuilder';
-import { transformColumnForDataType } from './QueryResult';
 import { getAstNodeRepository } from './ast-node-repository';
+import type { BaseDbDiscriminator, DataTypeBase, ExpressionBase } from './base';
+import type { DataTypeBoolean, DataTypes, allDataTypes } from './data-type';
 import {
   type DbConfig,
   type IndexQbWhereOperator,
@@ -22,6 +19,9 @@ import type {
   CompiledIndexConfigBase,
   IndexColumnConfig,
 } from './ddl/index-config';
+import type { ExpressionBuilderShape } from './expression-builder-type';
+import { serializeValueForDataType } from './insert-builder';
+import { transformColumnForDataType } from './query-result';
 import { managerLocalStorage } from './run-in-transaction';
 import { type SqlString, sql } from './sql-string';
 import { type TableSelector, createTableSelector } from './table-selector';

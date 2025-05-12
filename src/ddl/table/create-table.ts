@@ -1,4 +1,4 @@
-import { getSqlForColumnExpressionForDataType } from '../../migrations/columnExpressionForDataType';
+import { getSqlForColumnExpressionForDataType } from '../../migrations/column-expression-for-data-type';
 import type { SqlString } from '../../sql-string';
 import { sql } from '../../sql-string';
 import type {

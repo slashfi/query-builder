@@ -1,6 +1,6 @@
 import pg from 'pg';
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { TableBase } from '../Base';
+import type { TableBase } from '../base';
 import { type Db, createDb, createDbDiscriminator } from '../db-helper';
 
 describe('Transaction support', () => {

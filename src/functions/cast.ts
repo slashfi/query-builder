@@ -1,5 +1,5 @@
 import { assertUnreachable } from '@/core-utils';
-import type { BaseDbDiscriminator, ExpressionBase } from '../Base';
+import type { BaseDbDiscriminator, ExpressionBase } from '../base';
 import {
   type DataTypeBoolean,
   type DataTypeFloat,
@@ -14,14 +14,14 @@ import {
   createDataTypeUnion,
   createDataTypeVarchar,
   isDataTypeNullable,
-} from '../DataType';
+} from '../data-type';
 
+import { createExpressionBuilder } from '../expression-builder';
 import type {
   ExpressionBuilder,
   ExpressionBuilderShape,
-} from '../ExpressionBuilder';
-import { createExpressionBuilder } from '../expression-builder';
-import { expressionCast } from '../expressions/ExpressionCast';
+} from '../expression-builder-type';
+import { expressionCast } from '../expressions/expression-cast';
 import type { GetDataTypesForTs } from '../table-from-schema-column-builder';
 
 export const cast: CastValue = (expr, toType) => {

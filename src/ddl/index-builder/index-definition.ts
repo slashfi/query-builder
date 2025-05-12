@@ -2,13 +2,13 @@ import type {
   BaseDbDiscriminator,
   ExpressionBase,
   TableBase,
-} from '../../Base';
-import type { DataTypeBoolean } from '../../DataType';
+} from '../../base';
+import type { DataTypeBoolean } from '../../data-type';
 import type {
   ExpressionBuilder,
   ExpressionBuilderShape,
-} from '../../ExpressionBuilder';
-import type { ExpressionColumn } from '../../expressions/ExpressionColumn';
+} from '../../expression-builder-type';
+import type { ExpressionColumn } from '../../expressions/expression-column';
 import type { SqlString } from '../../sql-string';
 import type { IsNever } from '../../util';
 import type { IndexState } from './index-builder';

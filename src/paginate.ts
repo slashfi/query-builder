@@ -1,7 +1,7 @@
-import type { BaseDbDiscriminator } from './Base';
 import type { QueryBuilderParams } from './QueryBuilderParams';
-import { runQueryResult } from './QueryResult';
+import type { BaseDbDiscriminator } from './base';
 import type { DbConfig } from './db-helper';
+import { runQueryResult } from './query-result';
 
 export async function paginateQueryResult<S extends BaseDbDiscriminator>(
   params: QueryBuilderParams<S>,

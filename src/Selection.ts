@@ -1,15 +1,15 @@
 import type { MakeRequired } from '@/core-utils';
-import type { BaseDbDiscriminator, ExpressionBase } from './Base';
-import type { DataTypeBoolean, IsDataTypeNullable } from './DataType';
-import type { TargetBase } from './FromBuilder';
-import type { SelectionArray } from './QueryBuilderParams';
+import type { BaseDbDiscriminator, ExpressionBase } from './base';
 import type { ClauseForSelectListItem } from './clauses/ClauseForSelectListItem';
+import type { DataTypeBoolean, IsDataTypeNullable } from './data-type';
 import type { ExpressionColumn } from './expressions/ExpressionColumn';
 import type { ExpressionLeftRightBinary } from './expressions/ExpressionLeftRightBinary';
 import type { ExpressionRightUnaryBinary } from './expressions/ExpressionRightUnaryBinary';
 import type { ExpressionSelectColumns } from './expressions/ExpressionSelectColumns';
+import type { TargetBase } from './from-builder';
 import type { OperatorBinaryLogical } from './operators/OperatorBinaryLogical';
 import type { OperatoryUnaryIs } from './operators/OperatorUnaryIs';
+import type { SelectionArray } from './query-builder-params';
 import type { TypescriptTypeFromDataType } from './util';
 
 /**

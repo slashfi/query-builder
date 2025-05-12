@@ -1,9 +1,9 @@
-import type { ExpressionBuilder } from './ExpressionBuilder';
 import type { QueryBuilderParams } from './QueryBuilderParams';
+import type { ExpressionBuilder } from './expression-builder-type';
 import { type TableSelector, createTableSelector } from './table-selector';
 import { createValuesBuilder } from './values-builder';
 
-import type { BaseDbDiscriminator } from './Base';
+import type { BaseDbDiscriminator } from './base';
 import { createDb, createDbDiscriminator } from './db-helper';
 import * as fns from './functions';
 
@@ -15,20 +15,20 @@ export {
   type BaseDbDiscriminator,
 };
 
-export * from './from-builder';
-export * from './InsertBuilder';
-export type { RowOutputForQuery, SelectQueryBuilder } from './QueryBuilder';
 export type { GenericQueryBuilderParams } from './QueryBuilderParams';
+export * from './from-builder';
+export * from './insert-builder';
+export type { RowOutputForQuery, SelectQueryBuilder } from './query-builder';
 export {
   transformRawResultToQuery,
   transformSqlToParsedResult,
-} from './QueryResult';
+} from './query-result';
 export * from './table-from-schema-builder';
 export { fns };
 
 // Export types needed for table schemas
-export type { TableBase } from './Base';
-export type { ExpressionBuilder } from './ExpressionBuilder';
+export type { TableBase } from './base';
+export type { ExpressionBuilder } from './expression-builder-type';
 
 /**
  * You can import this method to make formatting chained expressions nicer
@@ -64,6 +64,6 @@ export {
   createDataTypeJson,
   createDataTypeTimestamp,
   createDataTypeVarchar,
-} from './DataType';
+} from './data-type';
 
 export type { __queryBuilderIndexes } from './ddl/codegen/index-metadata';

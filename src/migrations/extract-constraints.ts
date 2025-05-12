@@ -1,4 +1,4 @@
-import type { BaseDbDiscriminator } from '../Base';
+import type { BaseDbDiscriminator } from '../base';
 import type { IntrospectionResult } from '../introspection/schema-diff';
 import type { MigrationConstraints } from './types';
 

@@ -2,16 +2,16 @@ import type {
   BaseDbDiscriminator,
   DataTypeBase,
   ExpressionBase,
-} from '../Base';
+} from '../base';
+import { createExpressionBuilder } from '../expression-builder';
 import type {
   ExpressionBuilder,
   ExpressionBuilderShape,
-} from '../ExpressionBuilder';
-import { createExpressionBuilder } from '../expression-builder';
+} from '../expression-builder-type';
 import {
   type ExpressionTuple,
   expressionTuple,
-} from '../expressions/ExpressionTuple';
+} from '../expressions/expression-tuple';
 
 export const tuple: Tuple = (...builders) => {
   const b = createExpressionBuilder(

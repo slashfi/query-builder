@@ -4,7 +4,7 @@ import type {
   DataTypeBase,
   TableBase,
   TableColumnBase,
-} from '../Base';
+} from '../base';
 import {
   type DataTypeArray,
   createDataTypeArray,
@@ -16,9 +16,9 @@ import {
   createDataTypeVarchar,
   getNonNullableDataType,
   isDataTypeNullable,
-} from '../DataType';
-import type { EntityTarget } from '../EntityTarget';
+} from '../data-type';
 import type { DdlIndexDefinition } from '../ddl/table';
+import type { EntityTarget } from '../entity-target';
 import { type SqlString, sql } from '../sql-string';
 import { injectParameters } from '../sql-string/helpers';
 import type { TableIntrospectOptions } from '../table-from-schema-builder';

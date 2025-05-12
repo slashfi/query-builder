@@ -1,8 +1,12 @@
 import { compareTypes } from '@/core-utils';
 import { describe, expect, it } from 'vitest';
 import { constantInt, createDataTypeVarchar, createInsert, fns } from '..';
-import type { DataTypeBoolean, DataTypeNull, DataTypeUnion } from '../DataType';
-import { constantForArray } from '../constants/ConstantForArray';
+import { constantForArray } from '../constants/constant-for-array';
+import type {
+  DataTypeBoolean,
+  DataTypeNull,
+  DataTypeUnion,
+} from '../data-type';
 import { createDb, createDbDiscriminator } from '../db-helper';
 import { dataTypeToConstant } from '../expression-builder';
 import { createFrom } from '../from-builder';

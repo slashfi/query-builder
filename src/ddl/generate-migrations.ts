@@ -1,4 +1,4 @@
-import type { BaseDbDiscriminator, DataTypeBase, TableBase } from '../Base';
+import type { BaseDbDiscriminator, DataTypeBase, TableBase } from '../base';
 import {
   createDataTypeArray,
   createDataTypeBoolean,
@@ -8,8 +8,8 @@ import {
   createDataTypeTimestamp,
   createDataTypeVarchar,
   makeDataTypeNullable,
-} from '../DataType';
-import type { EntityTarget } from '../EntityTarget';
+} from '../data-type';
+import type { EntityTarget } from '../entity-target';
 import type { SchemaDiff, TableDiff } from '../introspection/schema-diff';
 import { formatDiff } from '../introspection/schema-diff';
 import type { SqlString } from '../sql-string';

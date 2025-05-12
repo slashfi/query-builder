@@ -1,17 +1,17 @@
-import type { BaseDbDiscriminator } from '../Base';
-import type { ExpressionBuilder } from '../ExpressionBuilder';
 import {
   type QueryBuilderParams,
   type SetQbParams,
   updateQueryBuilderParams,
 } from '../QueryBuilderParams';
+import type { BaseDbDiscriminator } from '../base';
 import {
   type ClauseForSelectListItem,
   clauseForSelectListItem,
-} from '../clauses/ClauseForSelectListItem';
-import { expressionColumn } from '../expressions/ExpressionColumn';
+} from '../clauses/clausefor-select-list-item';
+import type { ExpressionBuilder } from '../expression-builder-type';
+import { expressionColumn } from '../expressions/expression-column';
 import type { AssertSqlQueryBuilder } from '../query-builder-asserter';
-import { createSqlQueryBuilder } from './SqlQueryBuilder';
+import { createSqlQueryBuilder } from './sql-query-builder';
 
 export const createSqlQueryBuilderSelect = <S extends BaseDbDiscriminator>(
   params: QueryBuilderParams<S>

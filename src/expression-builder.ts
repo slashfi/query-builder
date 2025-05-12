@@ -1,32 +1,32 @@
-import type { BaseDbDiscriminator, ExpressionBase } from './Base';
+import type { BaseDbDiscriminator, ExpressionBase } from './base';
+import type { ConstantBase } from './constants/base';
+import { constantForArray } from './constants/constant-for-array';
+import { constantForBoolean } from './constants/constant-for-boolean';
+import { constantForFloat } from './constants/constant-for-float';
+import { constantForInteger } from './constants/constant-for-integer';
+import { constantForJson } from './constants/constant-for-json';
+import { constantForTimestamp } from './constants/constant-for-timestamp';
+import { constantForVarchar } from './constants/constant-for-varchar';
 import {
   type DataTypeBoolean,
   type DataTypeUnion,
   type DataTypes,
   getNonNullableDataType,
-} from './DataType';
+} from './data-type';
 import type {
   ExpressionBuilder,
   ExpressionBuilderShape,
   SelectorForJson,
-} from './ExpressionBuilder';
-import { constantForArray } from './constants/ConstantForArray';
-import { constantForBoolean } from './constants/ConstantForBoolean';
-import { constantForFloat } from './constants/ConstantForFloat';
-import { constantForInteger } from './constants/ConstantForInteger';
-import { constantForJson } from './constants/ConstantForJson';
-import { constantForTimestamp } from './constants/ConstantForTimestamp';
-import { constantForVarchar } from './constants/ConstantForVarchar';
-import type { ConstantBase } from './constants/base';
-import { expressionBracket } from './expressions/ExpressionBracket';
-import { expressionJsonPropertyAccess } from './expressions/ExpressionJsonPropertyAccess';
-import { expressionLeftRightBinary } from './expressions/ExpressionLeftRightBinary';
-import { expressionRightUnaryBinary } from './expressions/ExpressionRightUnaryBinary';
-import { expressionSubqueryBinary } from './expressions/ExpressionSubqueryBinary';
-import { operatorBinaryComparator } from './operators/OperatorBinaryComparator';
-import { operatorBinaryLogical } from './operators/OperatorBinaryLogical';
-import { operatorBinarySimilarity } from './operators/OperatorBinarySimilarity';
-import { operatorUnaryIs } from './operators/OperatorUnaryIs';
+} from './expression-builder-type';
+import { expressionBracket } from './expressions/expression-bracket';
+import { expressionJsonPropertyAccess } from './expressions/expression-json-property-access';
+import { expressionLeftRightBinary } from './expressions/expression-left-right-binary';
+import { expressionRightUnaryBinary } from './expressions/expression-right-unary-binary';
+import { expressionSubqueryBinary } from './expressions/expression-subquery-binary';
+import { operatorBinaryComparator } from './operators/operator-binary-comparator';
+import { operatorBinaryLogical } from './operators/operator-binary-logical';
+import { operatorBinarySimilarity } from './operators/operator-binary-similarity';
+import { operatorUnaryIs } from './operators/operator-unary-is';
 
 const expressionBuilderShapeSymbol = Symbol('expressionBuilderShape');
 

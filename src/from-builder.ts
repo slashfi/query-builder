@@ -4,39 +4,35 @@ import type {
   ExpressionBase,
   TableBase,
   TableColumnBase,
-} from './Base';
-import type { EntityTarget, GenericEntityTarget } from './EntityTarget';
-import {
-  type TargetJoinType,
-  type TargetList,
-  extendTargetList,
-} from './FromBuilder';
-import type { ResultAssertBuilder, SelectQueryBuilder } from './QueryBuilder';
-import {
-  type QueryBuilderParams,
-  updateQueryBuilderParams,
-} from './QueryBuilderParams';
-import { runQueryResult } from './QueryResult';
-import { clauseForGroupByList } from './clauses/ClauseForGroupBy';
-import { clauseForOrderByList } from './clauses/ClauseForOrderBy';
+} from './base';
+import { clauseForGroupByList } from './clauses/clause-for-group-by';
+import { clauseForOrderByList } from './clauses/clause-for-order-by';
+import { clauseFromExpression } from './clauses/clause-from-expression';
 import {
   type ClauseForSelectListItem,
   clauseForSelectListItem,
-} from './clauses/ClauseForSelectListItem';
-import { clauseFromExpression } from './clauses/ClauseFromExpression';
+} from './clauses/clausefor-select-list-item';
+import type { DataTypeBoolean } from './data-type';
 import type { DbConfig } from './db-helper';
-import { expressionLeftRightBinary } from './expressions/ExpressionLeftRightBinary';
+import type { EntityTarget, GenericEntityTarget } from './entity-target';
+import { expressionLeftRightBinary } from './expressions/expression-left-right-binary';
 import {
   type ExpressionSelectColumns,
   expressionSelectColumns,
-} from './expressions/ExpressionSelectColumns';
-import { operatorBinaryLogical } from './operators/OperatorBinaryLogical';
+} from './expressions/expression-select-columns';
+import { operatorBinaryLogical } from './operators/operator-binary-logical';
 import { paginateQueryResult } from './paginate';
+import type { ResultAssertBuilder, SelectQueryBuilder } from './query-builder';
+import {
+  type QueryBuilderParams,
+  updateQueryBuilderParams,
+} from './query-builder-params';
+import { runQueryResult } from './query-result';
 import type { ColumnsSelectList } from './sql-query-builder/group-by-list-builder';
 import { qbSelectListToSelectClause } from './sql-query-builder/select-list-builder';
 import type { TableSelector } from './table-selector';
 import { createTableSelector } from './table-selector';
-import { writeSql } from './writeSql';
+import { writeSql } from './write-sql';
 
 export function createFrom<
   S extends BaseDbDiscriminator = BaseDbDiscriminator,
@@ -561,3 +557,87 @@ export function asTarget<
     },
   };
 }
+
+export type GetEntityFromTargetList<
+  List extends TargetList<S>,
+  Alias extends List[number]['alias'],
+  S extends BaseDbDiscriminator,
+> = Extract<List[number], { alias: Alias }>;
+
+export type TargetJoinType =
+  | {
+      type: 'left';
+      on: ExpressionBase<DataTypeBoolean>;
+    }
+  | {
+      type: 'right';
+      on: ExpressionBase<DataTypeBoolean>;
+    }
+  | {
+      /**
+       * Joins for inserts
+       */
+      type: 'insert';
+    };
+export interface TargetBase<S extends BaseDbDiscriminator> {
+  table: TableBase<S>;
+  alias: string;
+  customIndex?: string | undefined;
+  join?: TargetJoinType;
+  /**
+   * Whether the target uses the alias in its expressions
+   */
+  isUsingAlias: boolean;
+}
+
+export type TargetList<S extends BaseDbDiscriminator> =
+  readonly TargetBase<S>[];
+export function extendTargetList<
+  T extends TargetList<S>,
+  New extends TargetBase<S>,
+  S extends BaseDbDiscriminator,
+>(curr: T, newValue: New): readonly [...T, New] {
+  return [...curr, newValue] as const;
+}
+
+export type LeftJoinTarget<
+  Target extends GenericEntityTarget<S>,
+  Alias extends string,
+  BooleanExpr extends ExpressionBase<DataTypeBoolean>,
+  S extends BaseDbDiscriminator,
+> = {
+  join: {
+    type: 'left';
+    on: BooleanExpr;
+  };
+  table: Target['Table'];
+  target: Target;
+  alias: Alias;
+  isUsingAlias: true;
+};
+
+export type RightJoinTarget<
+  Target extends GenericEntityTarget<S>,
+  Alias extends string,
+  BooleanExpr extends ExpressionBase<DataTypeBoolean>,
+  S extends BaseDbDiscriminator,
+> = {
+  join: {
+    type: 'right';
+    on: BooleanExpr;
+  };
+  table: Target['Table'];
+  target: Target;
+  alias: Alias;
+  isUsingAlias: true;
+};
+
+export type InferAlias<
+  Target extends GenericEntityTarget<S>,
+  Alias extends string,
+  S extends BaseDbDiscriminator,
+> = [Alias] extends [never]
+  ? Target extends GenericEntityTarget<S>
+    ? Target['Table']['defaultAlias']
+    : never
+  : Alias;

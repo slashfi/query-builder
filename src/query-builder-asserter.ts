@@ -1,12 +1,12 @@
 import type { DropNeverKeys, IsAny, TypecheckError } from '@/core-utils';
-import type { BaseDbDiscriminator, ExpressionBase } from './Base';
-import type { GetEntityFromTargetList, TargetBase } from './FromBuilder';
-import type { SelectQueryBuilder } from './QueryBuilder';
 import type { QueryBuilderParams, SelectionArray } from './QueryBuilderParams';
-import type { ClauseForGroupByList } from './clauses/ClauseForGroupBy';
-import type { ClauseForSelectListItem } from './clauses/ClauseForSelectListItem';
-import type { ExpressionColumn } from './expressions/ExpressionColumn';
-import type { SqlQueryBuilder } from './sql-query-builder/SqlQueryBuilder';
+import type { BaseDbDiscriminator, ExpressionBase } from './base';
+import type { ClauseForGroupByList } from './clauses/clause-for-group-by';
+import type { ClauseForSelectListItem } from './clauses/clausefor-select-list-item';
+import type { ExpressionColumn } from './expressions/expression-column';
+import type { GetEntityFromTargetList, TargetBase } from './from-builder';
+import type { SelectQueryBuilder } from './query-builder';
+import type { SqlQueryBuilder } from './sql-query-builder/sql-query-builder';
 import type {
   CheckForTypecheckError,
   FilterNeverValuesFromReadonlyArray,

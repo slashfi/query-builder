@@ -1,18 +1,18 @@
-import type { BaseDbDiscriminator, ExpressionBase } from '../Base';
-import type { DataTypeBoolean } from '../DataType';
-import type { ExpressionBuilderShape } from '../ExpressionBuilder';
 import {
   type QueryBuilderParams,
   type SetQbParams,
   updateQueryBuilderParams,
 } from '../QueryBuilderParams';
+import type { BaseDbDiscriminator, ExpressionBase } from '../base';
 import {
   type ClauseFromExpression,
   clauseFromExpression,
-} from '../clauses/ClauseFromExpression';
+} from '../clauses/clause-from-expression';
+import type { DataTypeBoolean } from '../data-type';
+import type { ExpressionBuilderShape } from '../expression-builder-type';
 import type { SuppressLongWhereClause } from '../global';
 import type { AssertSqlQueryBuilder } from '../query-builder-asserter';
-import { createSqlQueryBuilder } from './SqlQueryBuilder';
+import { createSqlQueryBuilder } from './sql-query-builder';
 
 export function createSqlQueryBuilderWhere<S extends BaseDbDiscriminator>(
   params: QueryBuilderParams<S>

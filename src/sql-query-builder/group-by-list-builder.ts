@@ -1,20 +1,20 @@
 import type { IsAny } from '@/core-utils';
-import type { BaseDbDiscriminator, ExpressionBase } from '../Base';
-import type { ExpressionBuilder } from '../ExpressionBuilder';
 import {
   type QueryBuilderParams,
   type SelectionArray,
   type SetQbParams,
   updateQueryBuilderParams,
 } from '../QueryBuilderParams';
+import type { BaseDbDiscriminator, ExpressionBase } from '../base';
 import {
   type ClauseForGroupByList,
   clauseForGroupByList,
-} from '../clauses/ClauseForGroupBy';
-import type { ClauseForSelectListItem } from '../clauses/ClauseForSelectListItem';
-import type { ExpressionColumn } from '../expressions/ExpressionColumn';
+} from '../clauses/clause-for-group-by';
+import type { ClauseForSelectListItem } from '../clauses/clausefor-select-list-item';
+import type { ExpressionBuilder } from '../expression-builder-type';
+import type { ExpressionColumn } from '../expressions/expression-column';
 import type { AssertSqlQueryBuilder } from '../query-builder-asserter';
-import { createSqlQueryBuilder } from './SqlQueryBuilder';
+import { createSqlQueryBuilder } from './sql-query-builder';
 
 export const createSqlQueryBuilderGroupBy =
   <S extends BaseDbDiscriminator>(

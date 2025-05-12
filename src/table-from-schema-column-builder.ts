@@ -4,7 +4,7 @@ import {
   type IsAny,
   compareTypes,
 } from '@/core-utils';
-import type { DataTypeBase, ExpressionBase, TableColumnBase } from './Base';
+import type { DataTypeBase, ExpressionBase, TableColumnBase } from './base';
 import {
   type DataTypeArray,
   type DataTypeBoolean,
@@ -24,8 +24,8 @@ import {
   isDataTypeNullable,
   isNullDataType,
   isUnionDataType,
-} from './DataType';
-import type { ExpressionBuilderShape } from './ExpressionBuilder';
+} from './data-type';
+import type { ExpressionBuilderShape } from './expression-builder-type';
 import { type SqlString, sql } from './sql-string';
 import { injectParameters } from './sql-string/helpers';
 

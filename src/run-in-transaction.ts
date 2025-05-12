@@ -1,5 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
-import type { BaseDbDiscriminator } from './Base';
+import type { BaseDbDiscriminator } from './base';
 import type { DbConfig } from './db-helper';
 
 export const managerLocalStorage = new AsyncLocalStorage<{

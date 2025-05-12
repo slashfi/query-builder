@@ -1,5 +1,5 @@
-import type { BaseDbDiscriminator, TableBase } from '../Base';
-import type { EntityTarget } from '../EntityTarget';
+import type { BaseDbDiscriminator, TableBase } from '../base';
+import type { EntityTarget } from '../entity-target';
 import { type SqlString, sql } from '../sql-string';
 import {
   shouldIntrospectColumns,

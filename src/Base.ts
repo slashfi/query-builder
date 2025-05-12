@@ -1,8 +1,8 @@
-import type { QueryBuilderParams } from './QueryBuilderParams';
 import type { ConstantBase } from './constants/base';
 import type { IndexDefinition } from './ddl/index-builder/index-definition';
 import type { DdlIndexDefinition } from './ddl/table';
-import type { ExpressionColumn } from './expressions/ExpressionColumn';
+import type { ExpressionColumn } from './expressions/expression-column';
+import type { QueryBuilderParams } from./expressions/expression-column
 import type { SqlString } from './sql-string';
 import type { TableIntrospectOptions } from './table-from-schema-builder';
 import type { TableNodeForValues } from './values-builder';

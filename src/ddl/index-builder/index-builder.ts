@@ -2,11 +2,11 @@ import type {
   BaseDbDiscriminator,
   ExpressionBase,
   TableBase,
-} from '../../Base';
-import type { DataTypeBoolean } from '../../DataType';
-import type { ExpressionBuilderShape } from '../../ExpressionBuilder';
+} from '../../base';
+import type { DataTypeBoolean } from '../../data-type';
 import { isExpressionBuilderShape } from '../../expression-builder';
-import type { ExpressionColumn } from '../../expressions/ExpressionColumn';
+import type { ExpressionBuilderShape } from '../../expression-builder-type';
+import type { ExpressionColumn } from '../../expressions/expression-column';
 import type { SqlString } from '../../sql-string';
 import type {
   IndexDefinition,

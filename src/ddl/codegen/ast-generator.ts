@@ -1,14 +1,14 @@
 import ts from 'typescript';
+import { getAstNodeRepository } from '../../ast-node-repository';
 import type {
   BaseDbDiscriminator,
   ExpressionBase,
   TableBase,
-} from '../../Base';
-import type { EntityTarget } from '../../EntityTarget';
-import { getAstNodeRepository } from '../../ast-node-repository';
+} from '../../base';
+import type { EntityTarget } from '../../entity-target';
 import type { SqlString } from '../../sql-string';
 
-import type { ExpressionBuilderShape } from '../../ExpressionBuilder';
+import type { ExpressionBuilderShape } from '../../expression-builder-type';
 import { injectParameters } from '../../sql-string/helpers';
 
 // SQL keywords to ignore when extracting column names

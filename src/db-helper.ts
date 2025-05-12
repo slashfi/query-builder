@@ -1,6 +1,4 @@
-import type { BaseDbDiscriminator, TableBase } from './Base';
-import { createInsert } from './InsertBuilder';
-import { createUpdate } from './UpdateBuilder';
+import type { BaseDbDiscriminator, TableBase } from './base';
 import type { __queryBuilderIndexes } from './ddl/codegen/index-metadata';
 import {
   type CompiledIndexConfigBase,
@@ -13,12 +11,14 @@ import {
   type IndexQueryBuilder,
   createIndexQueryBuilder,
 } from './index-query-builder';
+import { createInsert } from './insert-builder';
 import { createTransaction, managerLocalStorage } from './run-in-transaction';
 import type { SqlString } from './sql-string';
 import {
   type TableFromSchemaBuilder,
   buildTableFromSchemaBase,
 } from './table-from-schema-builder';
+import { createUpdate } from './update-builder';
 import { type ValuesTableBuilder, createValuesBuilder } from './values-builder';
 
 export function createDbDiscriminator<Name extends string>(name: Name) {

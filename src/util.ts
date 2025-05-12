@@ -1,5 +1,5 @@
 import type { TypecheckError, UnionToIntersection } from '@/core-utils';
-import type { DataTypeBase } from './Base';
+import type { DataTypeBase } from './base';
 
 /**
  * Flatten a 2D readonly array into a single readonly array

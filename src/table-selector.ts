@@ -1,19 +1,19 @@
-import type { BaseDbDiscriminator } from './Base';
+import type { BaseDbDiscriminator } from './base';
+import { createExpressionBuilder } from './expression-builder';
 import type {
   CompositeSelectionBuilder,
   ExpressionBuilder,
-} from './ExpressionBuilder';
+} from './expression-builder-type';
+import {
+  type ExpressionColumn,
+  expressionColumn,
+} from './expressions/expression-column';
+import { expressionSelectColumns } from './expressions/expression-select-columns';
 import type {
   GetEntityFromTargetList,
   TargetBase,
   TargetList,
-} from './FromBuilder';
-import { createExpressionBuilder } from './expression-builder';
-import {
-  type ExpressionColumn,
-  expressionColumn,
-} from './expressions/ExpressionColumn';
-import { expressionSelectColumns } from './expressions/ExpressionSelectColumns';
+} from './from-builder';
 
 export type TableSelector<
   List extends TargetList<S>,

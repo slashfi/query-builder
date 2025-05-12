@@ -1,5 +1,5 @@
 import type { OriginalReferenceableObject } from '@/core-utils';
-import type { BaseDbDiscriminator, TableBase } from '../Base';
+import type { BaseDbDiscriminator, TableBase } from '../base';
 import type { __queryBuilderIndexes } from './codegen/index-metadata';
 import type { DdlIndexDefinition } from './table';
 

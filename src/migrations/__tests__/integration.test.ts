@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { BaseDbDiscriminator } from '../../Base';
+import type { BaseDbDiscriminator } from '../../base';
 import type { Config } from '../../introspection/config';
 import type { FastSchema } from '../../introspection/introspect-schema';
 import type { IntrospectionResult } from '../../introspection/schema-diff';

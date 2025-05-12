@@ -1,7 +1,7 @@
-import path from 'node:path';
 import type { Chalk } from 'chalk';
+import path from 'node:path';
 import pg from 'pg';
-import type { BaseDbDiscriminator } from '../Base';
+import type { BaseDbDiscriminator } from '../base';
 import { generateMigrations } from '../ddl/generate-migrations';
 import { loadConfig } from './config';
 import { introspectSchema } from './introspect-schema';
