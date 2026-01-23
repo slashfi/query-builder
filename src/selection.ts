@@ -1,16 +1,16 @@
 import type { MakeRequired } from '@/core-utils';
-import type { SelectionArray } from './QueryBuilderParams';
-import type { BaseDbDiscriminator, ExpressionB./clauses/clausefor-select-list-item
-import type { ClauseForSelectListItem } from './clauses/clausefor-select-list-item';
-import type { DataTypeBoolean, IsDataTy./expressions/expression-column';
-import type { ExpressionColumn } from './express./expressions/expression-left-right-binary
-import type { ExpressionLeftRightBinary } from '../expressions/expression-right-unary-binaryy';
-import type { ExpressionRightUnaryBinary } fro./expressions/expression-select-columnsry-binary';
+import type { SelectionArray } from './query-builder-params';
 import type { ExpressionSelectColumns } from './expressions/expression-select-columns';
-import type { TargetBase } from './from-buil./operators/operator-binary-logical
-import type { OperatorBinaryLogical } f./operators/operator-unary-isinary-logical';
 import type { OperatoryUnaryIs } from './operators/operator-unary-is';
 import type { TypescriptTypeFromDataType } from './util';
+import type { BaseDbDiscriminator, ExpressionBase } from './base';
+import type { TargetBase } from './from-builder';
+import type { ExpressionRightUnaryBinary } from './expressions/expression-right-unary-binary';
+import type { DataTypeBoolean, IsDataTypeNullable } from './data-type';
+import type { ExpressionLeftRightBinary } from './expressions/expression-left-right-binary';
+import type { ExpressionColumn } from './expressions/expression-column';
+import type { OperatorBinaryLogical } from './operators/operator-binary-logical';
+import type { ClauseForSelectListItem } from './clauses/clausefor-select-list-item';
 
 /**
  * Entity to track the output type definition

@@ -2,7 +2,7 @@ import {
   type QueryBuilderParams,
   type SetQbParams,
   updateQueryBuilderParams,
-} from '../QueryBuilderParams';
+} from '../query-builder-params';
 import type { BaseDbDiscriminator } from '../base';
 import {
   type OrderByListItem,

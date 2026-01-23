@@ -7,7 +7,7 @@ import type {
   CanWhere,
   QueryBuilderParams,
   SetQbParams,
-} from './QueryBuilderParams';
+} from './query-builder-params';
 import type { BaseDbDiscriminator, ExpressionBase, TableBase } from './base';
 import type { ClauseForOrderByList } from './clauses/clause-for-order-by';
 import type { ClauseFromExpression } from './clauses/clause-from-expression';

@@ -1,5 +1,8 @@
 import type { DropNeverKeys, IsAny, TypecheckError } from '@/core-utils';
-import type { QueryBuilderParams, SelectionArray } from './QueryBuilderParams';
+import type {
+  QueryBuilderParams,
+  SelectionArray,
+} from './query-builder-params';
 import type { BaseDbDiscriminator, ExpressionBase } from './base';
 import type { ClauseForGroupByList } from './clauses/clause-for-group-by';
 import type { ClauseForSelectListItem } from './clauses/clausefor-select-list-item';

@@ -1,7 +1,8 @@
 import { command, option, positional, run, string } from 'cmd-ts';
 import fs from 'node:fs';
 import path from 'node:path';
-import type { Config } from './swc.types';
+
+type Config = any;
 
 run(
   command({
@@ -33,7 +34,7 @@ function mergeExtends(config: Config): Config {
 
   const { extends: extensions, ...baseConfig } = config;
 
-  const resolvedExtensions = extensions.map((extension) =>
+  const resolvedExtensions = extensions.map((extension: any) =>
     mergeExtends(extension)
   );
 

@@ -4,7 +4,7 @@ import {
   type SelectionArray,
   type SetQbParams,
   updateQueryBuilderParams,
-} from '../QueryBuilderParams';
+} from '../query-builder-params';
 import type { BaseDbDiscriminator, ExpressionBase } from '../base';
 import {
   type ClauseForGroupByList,

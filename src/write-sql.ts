@@ -1,5 +1,5 @@
 import { assertUnreachable } from '@/core-utils';
-import type { QueryBuilderParams } from './QueryBuilderParams';
+import type { QueryBuilderParams } from './query-builder-params';
 import { getAstNodeRepository } from './ast-node-repository';
 import type { BaseDbDiscriminator, TableBase } from './base';
 import { type SqlString, sql } from './sql-string';

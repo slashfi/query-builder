@@ -2,7 +2,7 @@ import {
   type QueryBuilderParams,
   type SetQbParams,
   updateQueryBuilderParams,
-} from '../QueryBuilderParams';
+} from '../query-builder-params';
 import type { BaseDbDiscriminator } from '../base';
 import type { AssertSqlQueryBuilder } from '../query-builder-asserter';
 import { createSqlQueryBuilder } from './sql-query-builder';

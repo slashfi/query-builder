@@ -1,4 +1,4 @@
-import type { QueryBuilderParams } from './QueryBuilderParams';
+import type { QueryBuilderParams } from './query-builder-params';
 import type { BaseDbDiscriminator } from './base';
 import type { DbConfig } from './db-helper';
 import { runQueryResult } from './query-result';

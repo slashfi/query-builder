@@ -1,4 +1,4 @@
-import type { QueryBuilderParams } from './QueryBuilderParams';
+import type { QueryBuilderParams } from './query-builder-params';
 import type { ExpressionBuilder } from './expression-builder-type';
 import { type TableSelector, createTableSelector } from './table-selector';
 import { createValuesBuilder } from './values-builder';
@@ -15,7 +15,7 @@ export {
   type BaseDbDiscriminator,
 };
 
-export type { GenericQueryBuilderParams } from './QueryBuilderParams';
+export type { GenericQueryBuilderParams } from './query-builder-params';
 export * from './from-builder';
 export * from './insert-builder';
 export type { RowOutputForQuery, SelectQueryBuilder } from './query-builder';
