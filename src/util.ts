@@ -1,4 +1,4 @@
-import type { GenericAny, TypecheckError } from '@/core-utils';
+import type { GenericAny, TypecheckError } from './core-utils';
 import type { DataTypeBase } from './Base';
 
 /**

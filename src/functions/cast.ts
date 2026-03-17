@@ -1,4 +1,4 @@
-import { assertUnreachable, type GenericAny } from '@/core-utils';
+import { assertUnreachable, type GenericAny } from '../core-utils';
 import type { BaseDbDiscriminator, ExpressionBase } from '../Base';
 import {
   createDataTypeBoolean,

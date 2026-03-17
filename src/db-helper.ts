@@ -1,4 +1,4 @@
-import type { GenericAny } from '@/core-utils';
+import type { GenericAny } from './core-utils';
 import type { BaseDbDiscriminator, TableBase } from './Base';
 import type { __queryBuilderIndexes } from './ddl/codegen/index-metadata';
 import {

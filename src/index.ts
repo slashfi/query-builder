@@ -1,4 +1,4 @@
-import type { GenericAny } from '@/core-utils';
+import type { GenericAny } from './core-utils';
 import type { BaseDbDiscriminator } from './Base';
 import { createDb, createDbDiscriminator, type Db } from './db-helper';
 import type { ExpressionBuilder } from './ExpressionBuilder';

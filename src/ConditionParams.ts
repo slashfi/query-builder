@@ -1,4 +1,4 @@
-import { compareTypes, type Expand, type IsAny } from '@/core-utils';
+import { compareTypes, type Expand, type IsAny } from './core-utils';
 import type { ExpressionBase } from './Base';
 import type { ClauseFromExpression } from './clauses/ClauseFromExpression';
 import type { DataTypeBoolean } from './DataType';

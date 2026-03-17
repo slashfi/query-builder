@@ -5,7 +5,7 @@
   })
 */
 
-import type { GenericAny } from '@/core-utils';
+import type { GenericAny } from '../core-utils';
 import type { BaseDbDiscriminator } from '../Base';
 import type { OrderByList } from '../clauses/ClauseForOrderBy';
 import type { ExpressionBuilder } from '../ExpressionBuilder';

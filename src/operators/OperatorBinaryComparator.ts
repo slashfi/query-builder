@@ -1,4 +1,4 @@
-import { assertUnreachable, type GenericAny } from '@/core-utils';
+import { assertUnreachable, type GenericAny } from '../core-utils';
 import { createAstNode } from '../createAstNode';
 import {
   createDataTypeBoolean,

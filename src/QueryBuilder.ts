@@ -1,4 +1,4 @@
-import type { AllOf, AnyOf, GenericAny, IsAny, Not } from '@/core-utils';
+import type { AllOf, AnyOf, GenericAny, IsAny, Not } from './core-utils';
 import type { BaseDbDiscriminator, ExpressionBase, TableBase } from './Base';
 import type { ConditionParams, SetConditionParams } from './ConditionParams';
 import type { ClauseForOrderByList } from './clauses/ClauseForOrderBy';

@@ -4,7 +4,7 @@ import type {
   Expand,
   GenericAny,
   IsAny,
-} from '@/core-utils';
+} from './core-utils';
 import type { BaseDbDiscriminator, ExpressionBase } from './Base';
 import type { ConditionParams } from './ConditionParams';
 import type { ClauseForGroupByList } from './clauses/ClauseForGroupBy';

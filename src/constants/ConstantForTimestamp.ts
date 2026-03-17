@@ -1,4 +1,4 @@
-import type { GenericAny } from '@/core-utils';
+import type { GenericAny } from '../core-utils';
 import { createAstNode } from '../createAstNode';
 import { createDataTypeTimestamp, type DataTypeTimestamp } from '../DataType';
 import { sql } from '../sql-string';

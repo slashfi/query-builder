@@ -1,4 +1,4 @@
-import { assertUnreachable, filterUndefined } from '@/core-utils';
+import { assertUnreachable, filterUndefined } from './core-utils';
 import { getAstNodeRepository } from './ast-node-repository';
 import type { BaseDbDiscriminator, TableBase } from './Base';
 import type { QueryBuilderParams } from './QueryBuilderParams';

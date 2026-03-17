@@ -1,4 +1,4 @@
-import { assertUnreachable } from '@/core-utils';
+import { assertUnreachable } from '../core-utils';
 import { getAstNodeRepository } from '../ast-node-repository';
 import type { ClauseBase, DataTypeBase, ExpressionBase } from '../Base';
 import { createAstNode } from '../createAstNode';

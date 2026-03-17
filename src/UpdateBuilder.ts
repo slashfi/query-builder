@@ -5,7 +5,7 @@ import type {
   GenericAny,
   IsAny,
   TypecheckError,
-} from '@/core-utils';
+} from './core-utils';
 import { getAstNodeRepository } from './ast-node-repository';
 import type { BaseDbDiscriminator, ExpressionBase, TableBase } from './Base';
 import type { allDataTypes, DataTypeBoolean, DataTypes } from './DataType';

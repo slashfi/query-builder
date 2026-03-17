@@ -7,9 +7,7 @@
     "esModuleInterop": true,
     "paths": {
       "@slashfi/query-builder": ["src"],
-      "@slashfi/query-builder/*": ["src/*"],
-      "@/core-utils": ["src/core-utils"],
-      "@/core-utils/*": ["src/core-utils/*"]
+      "@slashfi/query-builder/*": ["src/*"]
     }
   },
   "include": ["../src", "./**/*.ts"]

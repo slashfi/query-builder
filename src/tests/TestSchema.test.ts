@@ -1,4 +1,4 @@
-import { compareTypes, type GenericAny } from '@/core-utils';
+import { compareTypes, type GenericAny } from '../core-utils';
 import { describe, expect, it } from 'vitest';
 import { constantInt, createDataTypeVarchar, createInsert, fns } from '..';
 import { constantForArray } from '../constants/ConstantForArray';

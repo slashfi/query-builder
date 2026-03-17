@@ -3,7 +3,7 @@ import type {
   GenericAny,
   IsAny,
   TypecheckError,
-} from '@/core-utils';
+} from './core-utils';
 import type { BaseDbDiscriminator, ExpressionBase } from './Base';
 import type { ClauseForGroupByList } from './clauses/ClauseForGroupBy';
 import type { ClauseForSelectListItem } from './clauses/ClauseForSelectListItem';

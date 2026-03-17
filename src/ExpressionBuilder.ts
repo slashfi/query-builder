@@ -5,7 +5,7 @@ import type {
   OriginalReferenceableObject,
   RecursivePartial,
   TypecheckError,
-} from '@/core-utils';
+} from './core-utils';
 import type { BaseDbDiscriminator, DataTypeBase, ExpressionBase } from './Base';
 import type { OrderByListItem } from './clauses/ClauseForOrderBy';
 import type {

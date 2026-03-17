@@ -1,4 +1,4 @@
-import { assertUnreachable, type GenericAny } from '@/core-utils';
+import { assertUnreachable, type GenericAny } from '../core-utils';
 import { getAstNodeRepository } from '../ast-node-repository';
 import type { BaseDbDiscriminator, ExpressionBase } from '../Base';
 import { createAstNode } from '../createAstNode';
