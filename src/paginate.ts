@@ -1,17 +1,18 @@
-import type { QueryBuilderParams } from './query-builder-params';
-import type { BaseDbDiscriminator } from './base';
+import type { GenericAny } from '@/core-utils';
+import type { BaseDbDiscriminator } from './Base';
 import type { DbConfig } from './db-helper';
-import { runQueryResult } from './query-result';
+import type { QueryBuilderParams } from './QueryBuilderParams';
+import { runQueryResult } from './QueryResult';
 
 export async function paginateQueryResult<S extends BaseDbDiscriminator>(
   params: QueryBuilderParams<S>,
   data: {
     queryRunner: {
-      query: DbConfig<S, any>['query'];
+      query: DbConfig<S, GenericAny>['query'];
     };
     throwsIfEmpty?: boolean | (() => Error);
     limit: number;
-    currentData: any[];
+    currentData: GenericAny[];
   }
 ) {
   const res = await runQueryResult(

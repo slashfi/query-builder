@@ -1,12 +1,8 @@
-import { compareTypes } from '@/core-utils';
+import { compareTypes, type GenericAny } from '@/core-utils';
 import { describe, expect, it } from 'vitest';
 import { constantInt, createDataTypeVarchar, createInsert, fns } from '..';
-import { constantForArray } from '../constants/constant-for-array';
-import type {
-  DataTypeBoolean,
-  DataTypeNull,
-  DataTypeUnion,
-} from '../data-type';
+import { constantForArray } from '../constants/ConstantForArray';
+import type { DataTypeBoolean, DataTypeNull, DataTypeUnion } from '../DataType';
 import { createDb, createDbDiscriminator } from '../db-helper';
 import { dataTypeToConstant } from '../expression-builder';
 import { createFrom } from '../from-builder';
@@ -249,7 +245,7 @@ describe('TestSchema', () => {
 
     compareTypes<{
       a: typeof res;
-      b: [any | undefined];
+      b: [GenericAny | undefined];
     }>()
       .expect('a')
       .toBeEquivalent('b');
@@ -315,14 +311,11 @@ describe('TestSchema', () => {
   });
 
   it('should correctly query values', async () => {
-    const values = db
-      .values({
-        prompt: createDataTypeVarchar({ isNullable: false }),
-      })
+    db.values({
+      prompt: createDataTypeVarchar({ isNullable: false }),
+    })
       .rows({ prompt: 'hello' }, { prompt: 'world' })
       .withAlias('hello_world');
-
-    console.log(db.from(values).getSqlString());
   });
 
   it('should support where clauses in doUpdateSet', async () => {
@@ -362,7 +355,7 @@ describe('TestSchema', () => {
   });
 
   it('can insert arrays and query with correct type', async () => {
-    const res = await insert(TestSchemaTable)
+    await insert(TestSchemaTable)
       .values({
         id: '',
         nullableBoolean: false,
@@ -372,8 +365,6 @@ describe('TestSchema', () => {
         nullableString: 'hello world',
       })
       .query();
-
-    console.log(res.sql);
 
     const res2 = await db.from(TestSchemaTable);
 

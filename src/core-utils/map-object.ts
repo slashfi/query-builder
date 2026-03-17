@@ -1,4 +1,6 @@
-export function mapObject<T extends { [Key in string]: any }, R>(
+import type { GenericAny } from './generic-any';
+
+export function mapObject<T extends { [Key in string]: GenericAny }, R>(
   object: T,
   map: (value: T[keyof T], key: string) => R
 ): {
@@ -6,5 +8,5 @@ export function mapObject<T extends { [Key in string]: any }, R>(
 } {
   return Object.fromEntries(
     Object.entries(object).map(([key, value]) => [key, map(value, key)])
-  ) as any;
+  ) as GenericAny;
 }

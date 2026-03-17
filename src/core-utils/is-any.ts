@@ -1,3 +1,5 @@
+import type { GenericAny } from './generic-any';
+
 /**
  * Checks if a type is `any`. Returns `true` or `false`
  */
@@ -7,4 +9,8 @@ export type IsAny<T> = DoubleAnyCheck<T> extends true
     : false
   : false;
 
-type DoubleAnyCheck<T> = T extends any ? (any extends T ? true : false) : false;
+type DoubleAnyCheck<T> = T extends GenericAny
+  ? GenericAny extends T
+    ? true
+    : false
+  : false;

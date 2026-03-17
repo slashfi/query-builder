@@ -1,5 +1,6 @@
-import type { OriginalReferenceableObject } from '@/core-utils';
-import type { BaseDbDiscriminator, TableBase } from '../base';
+import { filterUndefined, type OriginalReferenceableObject } from '@/core-utils';
+import type { BaseDbDiscriminator, TableBase } from '../Base';
+import { sql } from '../sql-string/index';
 import type { __queryBuilderIndexes } from './codegen/index-metadata';
 import type { DdlIndexDefinition } from './table';
 
@@ -81,6 +82,7 @@ export type CompiledIndexesConfig<
   [K in keyof T['Table']['indexes']]: {
     index: DdlIndexDefinition;
     table: T['Table'];
+    Table: T['Table'];
     friendlyIndexName: string;
     getOptions: () => Promise<{
       columns: OriginalReferenceableObject<
@@ -134,11 +136,18 @@ export type CompiledIndexesConfig<
       >]['unique'];
     }>;
   };
+} & {
+  primaryKey: PrimaryKeyIndexConfig<T, S>;
 };
 
 export interface CompiledIndexConfigBase<S extends BaseDbDiscriminator> {
   index: DdlIndexDefinition;
   table: TableBase<S>;
+  /**
+   * Mirrors `table` so that CompiledIndexConfigBase satisfies GenericEntityTarget<S>.
+   * This lets index configs be passed directly to from() and join methods.
+   */
+  Table: TableBase<S>;
   friendlyIndexName: string;
   getOptions: () => Promise<{
     columns: {
@@ -151,6 +160,32 @@ export interface CompiledIndexConfigBase<S extends BaseDbDiscriminator> {
     unique: boolean;
   }>;
 }
+
+/**
+ * Type for the automatically-generated primary key index config.
+ * This is always available on any table with a primary key defined.
+ */
+export type PrimaryKeyIndexConfig<
+  T extends { Table: TableBase<S> },
+  S extends BaseDbDiscriminator,
+> = {
+  index: DdlIndexDefinition;
+  table: T['Table'];
+  Table: T['Table'];
+  friendlyIndexName: 'primaryKey';
+  getOptions: () => Promise<{
+    columns: {
+      [K in T['Table']['primaryKey'][number]]: {
+        operations: ['eq', 'in'];
+      };
+    };
+    minimumSufficientColumns: T['Table']['primaryKey'];
+    columnsOrder: T['Table']['primaryKey'];
+    strict: { columnsOnly: false };
+    predicate: undefined;
+    unique: true;
+  }>;
+};
 
 /**
  * Helper function to configure index behavior with type safety.
@@ -168,7 +203,45 @@ export function indexConfig<
     queryBuilderIndexes: __queryBuilderIndexes;
   }>
 ): CompiledIndexesConfig<T, Config, S> {
-  return Object.fromEntries(
+  const primaryKeyColumns = entity.Table.primaryKey;
+  const primaryKeyIndexName = `${entity.Table.tableName}_pkey`;
+
+  // Create the primaryKey index config
+  const primaryKeyConfig: CompiledIndexConfigBase<S> = {
+    index: {
+      name: primaryKeyIndexName,
+      table: entity.Table.tableName,
+      schema: entity.Table.schema,
+      expressions: primaryKeyColumns.map((col) => sql.column({ name: col })),
+      unique: true,
+      concurrently: false,
+      ifNotExists: false,
+      nullsNotDistinct: false,
+      inverted: false,
+      method: undefined,
+      ascending: primaryKeyColumns.map(() => true),
+      storingColumns: [],
+      withClause: undefined,
+      storageParameters: undefined,
+      operatorClass: undefined,
+      whereClause: undefined,
+    },
+    table: entity.Table,
+    Table: entity.Table,
+    friendlyIndexName: 'primaryKey',
+    getOptions: async () => ({
+      columns: Object.fromEntries(
+        primaryKeyColumns.map((col) => [col, { operations: ['eq', 'in'] }])
+      ),
+      minimumSufficientColumns: primaryKeyColumns,
+      columnsOrder: primaryKeyColumns,
+      strict: { columnsOnly: false },
+      predicate: undefined,
+      unique: true,
+    }),
+  };
+
+  const existingIndexes = Object.fromEntries(
     entity.Table.indexes
       ? Object.entries(entity.Table.indexes).map(([key, index]) => {
           return [
@@ -176,6 +249,7 @@ export function indexConfig<
             {
               index,
               table: entity.Table,
+              Table: entity.Table,
               friendlyIndexName: key,
               getOptions: async () => {
                 const { queryBuilderIndexes } = await getQueryBuilderIndexes();
@@ -206,9 +280,8 @@ export function indexConfig<
                     ])
                   ),
                   minimumSufficientColumns:
-                    userConfig.minimumSufficientColumns?.filter(
-                      (val) => val !== undefined
-                    ) || indexMetadata.minimumSufficientColumns,
+                    (userConfig.minimumSufficientColumns ? filterUndefined(userConfig.minimumSufficientColumns) : undefined) ||
+                    indexMetadata.minimumSufficientColumns,
                   columnsOrder: indexMetadata.columnsOrder,
                   strict: userConfig.strict || { columnsOnly: true },
                   predicate: indexMetadata.predicate,
@@ -219,5 +292,10 @@ export function indexConfig<
           ] as const;
         })
       : []
-  ) as CompiledIndexesConfig<T, Config, S>;
+  );
+
+  return {
+    ...existingIndexes,
+    primaryKey: primaryKeyConfig,
+  } as CompiledIndexesConfig<T, Config, S>;
 }

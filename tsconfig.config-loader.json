@@ -2,9 +2,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es2020",
-    "lib": [
-      "es2020"
-    ],
+    "lib": ["es2020"],
     "esModuleInterop": true,
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
@@ -24,19 +22,11 @@
     "alwaysStrict": true,
     "baseUrl": "../..",
     "paths": {
-      "@slashfi/query-builder": [
-        "src"
-      ],
-      "@slashfi/query-builder/*": [
-        "src/*"
-      ]
+      "@slashfi/query-builder": ["src"],
+      "@slashfi/query-builder/*": ["src/*"]
     },
     "outDir": "../../lib/cli"
   },
-  "include": [
-    "."
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["."],
+  "exclude": ["node_modules"]
 }

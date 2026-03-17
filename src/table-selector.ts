@@ -1,19 +1,20 @@
-import type { BaseDbDiscriminator } from './base';
-import { createExpressionBuilder } from './expression-builder';
+import type { GenericAny } from '@/core-utils';
+import type { BaseDbDiscriminator } from './Base';
 import type {
   CompositeSelectionBuilder,
   ExpressionBuilder,
-} from './expression-builder-type';
+} from './ExpressionBuilder';
+import { createExpressionBuilder } from './expression-builder';
 import {
   type ExpressionColumn,
   expressionColumn,
-} from './expressions/expression-column';
-import { expressionSelectColumns } from './expressions/expression-select-columns';
+} from './expressions/ExpressionColumn';
+import { expressionSelectColumns } from './expressions/ExpressionSelectColumns';
 import type {
   GetEntityFromTargetList,
   TargetBase,
   TargetList,
-} from './from-builder';
+} from './FromBuilder';
 
 export type TableSelector<
   List extends TargetList<S>,
@@ -57,7 +58,7 @@ export function createTableSelector<
               | '*'
               | Record<
                   string,
-                  ExpressionBuilder<ExpressionColumn<any, string, S>, S>
+                  ExpressionBuilder<ExpressionColumn<GenericAny, string, S>, S>
                 >
           ) => {
             if (typeof params === 'string') {

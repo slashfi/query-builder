@@ -51,6 +51,7 @@ describe('Schema Diffing', () => {
                 defaultValue: null,
                 ordinalPosition: 1,
                 hidden: false,
+                computedExpression: null,
               },
               {
                 name: 'createdAt',
@@ -60,6 +61,7 @@ describe('Schema Diffing', () => {
                 defaultValue: null,
                 ordinalPosition: 2,
                 hidden: false,
+                computedExpression: null,
               },
             ],
             indexes: [],
@@ -136,6 +138,7 @@ describe('Schema Diffing', () => {
                 defaultValue: null,
                 ordinalPosition: 1,
                 hidden: false,
+                computedExpression: null,
               },
               {
                 name: 'email',
@@ -145,6 +148,7 @@ describe('Schema Diffing', () => {
                 defaultValue: null,
                 ordinalPosition: 2,
                 hidden: false,
+                computedExpression: null,
               },
               {
                 name: 'createdAt',
@@ -154,6 +158,7 @@ describe('Schema Diffing', () => {
                 defaultValue: null,
                 ordinalPosition: 3,
                 hidden: false,
+                computedExpression: null,
               },
             ],
             indexes: [],
@@ -228,6 +233,7 @@ describe('Schema Diffing', () => {
                 defaultValue: null,
                 ordinalPosition: 1,
                 hidden: false,
+                computedExpression: null,
               },
               {
                 name: 'email',
@@ -237,6 +243,7 @@ describe('Schema Diffing', () => {
                 defaultValue: null,
                 ordinalPosition: 2,
                 hidden: false,
+                computedExpression: null,
               },
               {
                 name: 'createdAt',
@@ -246,6 +253,7 @@ describe('Schema Diffing', () => {
                 defaultValue: null,
                 ordinalPosition: 3,
                 hidden: false,
+                computedExpression: null,
               },
             ],
             indexes: [
@@ -359,6 +367,7 @@ describe('Schema Diffing', () => {
                 defaultValue: null,
                 ordinalPosition: 1,
                 hidden: false,
+                computedExpression: null,
               },
               {
                 name: 'email',
@@ -368,6 +377,7 @@ describe('Schema Diffing', () => {
                 defaultValue: null,
                 ordinalPosition: 2,
                 hidden: false,
+                computedExpression: null,
               },
               {
                 name: 'name',
@@ -377,6 +387,7 @@ describe('Schema Diffing', () => {
                 defaultValue: null,
                 ordinalPosition: 3,
                 hidden: false,
+                computedExpression: null,
               },
             ],
             indexes: [
@@ -475,6 +486,7 @@ describe('Schema Diffing', () => {
                 defaultValue: null,
                 ordinalPosition: 1,
                 hidden: false,
+                computedExpression: null,
               },
               {
                 name: 'name',
@@ -484,6 +496,7 @@ describe('Schema Diffing', () => {
                 defaultValue: null,
                 ordinalPosition: 2,
                 hidden: false,
+                computedExpression: null,
               },
             ],
             indexes: [],

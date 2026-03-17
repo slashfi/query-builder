@@ -3,7 +3,7 @@ import {
   writeSelectFromIndexQuery,
 } from '@slashfi/query-builder/index-query-builder';
 import { describe, expect, it } from 'vitest';
-import { ThenableTestTable, db } from './thenable-result.schema';
+import { db, ThenableTestTable } from './thenable-result.schema';
 
 describe('writeSelectFromIndexQuery', () => {
   describe('Regular non-strict index (by_name)', () => {
@@ -249,6 +249,70 @@ describe('writeSelectFromIndexQuery', () => {
         'SELECT "thenableTest"."id" AS "id", "thenableTest"."name" AS "name" FROM "public"."thenable_test"@"thenable_test_by_name" AS "thenableTest" WHERE "thenableTest"."name" = $1 AND ("thenableTest"."status" = $2)'
       );
       expect(sql.sqlString.getParameters()).toEqual(['test', 'active']);
+    });
+  });
+
+  describe('Primary key index', () => {
+    it('generates SELECT with WHERE condition on primary key', async () => {
+      const query = db
+        .selectFromIndex(ThenableTestTable.idx.primaryKey)
+        .where({ id: 'test-id' });
+
+      const sql = await writeSelectFromIndexQuery(
+        ThenableTestTable.idx.primaryKey,
+        query._params
+      );
+      expect(sql.sqlString.getQuery().trim()).toBe(
+        'SELECT "thenableTest"."id" AS "id" FROM "public"."thenable_test"@"thenable_test_pkey" AS "thenableTest" WHERE "thenableTest"."id" = $1'
+      );
+      expect(sql.sqlString.getParameters()).toEqual(['test-id']);
+    });
+
+    it('generates SELECT with IN operator on primary key', async () => {
+      const query = db
+        .selectFromIndex(ThenableTestTable.idx.primaryKey)
+        .where({ id: db.in(['id1', 'id2', 'id3']) });
+
+      const sql = await writeSelectFromIndexQuery(
+        ThenableTestTable.idx.primaryKey,
+        query._params
+      );
+      expect(sql.sqlString.getQuery().trim()).toBe(
+        'SELECT "thenableTest"."id" AS "id" FROM "public"."thenable_test"@"thenable_test_pkey" AS "thenableTest" WHERE "thenableTest"."id" IN ($1, $2, $3)'
+      );
+      expect(sql.sqlString.getParameters()).toEqual(['id1', 'id2', 'id3']);
+    });
+
+    it('allows custom select with primary key index (non-strict)', async () => {
+      const query = db
+        .selectFromIndex(ThenableTestTable.idx.primaryKey)
+        .select({
+          user_id: (_) => _.thenableTest.id,
+          user_name: (_) => _.thenableTest.name,
+        });
+
+      const sql = await writeSelectFromIndexQuery(
+        ThenableTestTable.idx.primaryKey,
+        query._params
+      );
+      expect(sql.sqlString.getQuery().trim()).toBe(
+        'SELECT "thenableTest"."id" AS "user_id", "thenableTest"."name" AS "user_name" FROM "public"."thenable_test"@"thenable_test_pkey" AS "thenableTest"'
+      );
+    });
+
+    it('generates SELECT with expectOne for unique primary key', async () => {
+      const query = db
+        .selectFromIndex(ThenableTestTable.idx.primaryKey)
+        .where({ id: 'test-id' })
+        .expectOne();
+
+      const sql = await writeSelectFromIndexQuery(
+        ThenableTestTable.idx.primaryKey,
+        query._params
+      );
+      expect(sql.sqlString.getQuery().trim()).toContain(
+        '"thenable_test"@"thenable_test_pkey"'
+      );
     });
   });
 });

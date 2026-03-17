@@ -1,15 +1,15 @@
-import type { Chalk } from 'chalk';
 import path from 'node:path';
+import type { Chalk } from 'chalk';
 import pg from 'pg';
-import type { BaseDbDiscriminator } from '../base';
+import type { BaseDbDiscriminator } from '../Base';
 import { generateMigrations } from '../ddl/generate-migrations';
 import { loadConfig } from './config';
 import { introspectSchema } from './introspect-schema';
 import { loadSchemas } from './load-schemas';
 import {
-  type IntrospectionResult,
   diffSchemas,
   formatDiff,
+  type IntrospectionResult,
 } from './schema-diff';
 
 export async function introspect<S extends BaseDbDiscriminator>(
@@ -88,6 +88,7 @@ export async function introspect<S extends BaseDbDiscriminator>(
       migrations,
     };
   } catch (err) {
+    // biome-ignore lint/suspicious/noConsole: override
     console.error(err);
     throw err;
   } finally {
@@ -98,6 +99,7 @@ export async function introspect<S extends BaseDbDiscriminator>(
 // Only run if called directly
 if (require.main === module) {
   introspect().catch((error) => {
+    // biome-ignore lint/suspicious/noConsole: override
     console.error('Error during introspection:', error);
     process.exit(1);
   });

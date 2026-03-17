@@ -1,22 +1,22 @@
-import type { TypecheckError } from '@/core-utils';
-import type { BaseDbDiscriminator, DataTypeBase } from '../base';
+import type { GenericAny, TypecheckError } from '@/core-utils';
+import type { BaseDbDiscriminator, DataTypeBase } from '../Base';
+import type { ExpressionBuilder } from '../ExpressionBuilder';
 import { createExpressionBuilder } from '../expression-builder';
-import type { ExpressionBuilder } from '../expression-builder-type';
 import {
   type ExpressionAggregateCount,
   expressionCount,
-} from '../expressions/expression-fn-count';
+} from '../expressions/ExpressionFnCount';
 
 export const count: Count = (builder) => {
   const b = createExpressionBuilder(
     expressionCount.create(builder._expression)
   );
 
-  return b as any;
+  return b as GenericAny;
 };
 
 export type Count = <
-  Builder extends ExpressionBuilder<any, S>,
+  Builder extends ExpressionBuilder<GenericAny, S>,
   S extends BaseDbDiscriminator,
 >(
   builder: Builder

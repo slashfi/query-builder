@@ -1,7 +1,7 @@
-import { glob } from 'glob';
 import path from 'node:path';
-import type { BaseDbDiscriminator, TableBase } from '../base';
-import type { EntityTarget } from '../entity-target';
+import { glob } from 'glob';
+import type { BaseDbDiscriminator, TableBase } from '../Base';
+import type { EntityTarget } from '../EntityTarget';
 import type { Config } from './config';
 
 // Types

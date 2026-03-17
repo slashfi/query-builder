@@ -2,12 +2,18 @@ import type {
   AllOf,
   AnyOf,
   Expand,
+  GenericAny,
   IsAny,
   OriginalReferenceableObject,
   TypecheckError,
 } from '@/core-utils';
 import { getAstNodeRepository } from './ast-node-repository';
-import type { BaseDbDiscriminator, TableBase, TableColumnBase } from './base';
+import type {
+  BaseDbDiscriminator,
+  TableBase,
+  TableColumnBase,
+  TableModelOptions,
+} from './Base';
 import type { DbConfig } from './db-helper';
 import { createIndexBuilder } from './ddl/index-builder';
 import type {
@@ -17,15 +23,15 @@ import type {
 } from './ddl/index-builder/index-definition';
 import type { DdlIndexDefinition } from './ddl/table';
 import { createExpressionBuilder } from './expression-builder';
-import { expressionColumn } from './expressions/expression-column';
+import { expressionColumn } from './expressions/ExpressionColumn';
 import {
+  createTableColumnInferrer,
   type TableColumnBuilder,
   type TableColumnBuilderInferrer,
-  createTableColumnInferrer,
 } from './table-from-schema-column-builder';
 
 export function buildTableFromSchemaBase<Schema, S extends BaseDbDiscriminator>(
-  config: DbConfig<S, any>,
+  config: DbConfig<S, GenericAny>,
   inheritedBase?: TableBase<S>
 ) {
   const base: TableBase<S> = inheritedBase ?? {
@@ -45,7 +51,7 @@ export function buildTableFromSchemaBase<Schema, S extends BaseDbDiscriminator>(
     _databaseType: config.discriminator,
   };
 
-  const builder: TableFromSchemaBuilder<Schema, any, S> = {
+  const builder: TableFromSchemaBuilder<Schema, GenericAny, S> = {
     tableName: (tableName) => {
       return buildTableFromSchemaBase(config, {
         ...base,
@@ -88,37 +94,65 @@ export function buildTableFromSchemaBase<Schema, S extends BaseDbDiscriminator>(
       const namedIndexes = _internalIndexes
         ? Object.fromEntries(
             Object.entries(_internalIndexes).map(
-              ([key, index]): [string, DdlIndexDefinition] => [
-                key,
-                {
-                  // Required fields
-                  name: index._properties.name ?? `${base.tableName}_${key}`,
-                  table: base.tableName,
-                  schema: base.schema,
-                  expressions: index._properties.expressions.map((expr) =>
-                    'getQuery' in expr
+              ([key, index]): [string, DdlIndexDefinition] => {
+                // Extract expressions and directions
+                const expressionsWithDirections = index._properties.expressions;
+                const expressions = expressionsWithDirections.map(
+                  (exprWithDir) => {
+                    const expr = exprWithDir.expression;
+                    return 'getQuery' in expr
                       ? expr
-                      : getAstNodeRepository(expr).writeSql(expr, undefined)
-                  ),
+                      : getAstNodeRepository(expr).writeSql(expr, undefined);
+                  }
+                );
 
-                  // Fields with defaults
-                  unique: index._properties.options.unique ?? false,
-                  concurrently: false, // Default to false for safety
-                  ifNotExists: false, // Default to false for safety
-                  nullsNotDistinct: false, // Default to false for standard behavior
+                // Extract ascending array - true for ASC (or undefined/default), false for DESC
+                const ascending = expressionsWithDirections.map(
+                  (exprWithDir) => {
+                    if (exprWithDir.direction === 'desc') {
+                      return false;
+                    }
+                    // Default to true (ASC) for undefined or explicit 'asc'
+                    return true;
+                  }
+                );
 
-                  // Optional fields
-                  method: index._properties.options.method,
-                  ascending: undefined, // Will be determined by the expressions
-                  storingColumns:
-                    index._properties.storingColumns?.map((col) => col.value) ??
-                    [],
-                  whereClause: index._properties.condition,
-                  withClause: undefined,
-                  storageParameters: undefined,
-                  previousState: undefined, // Will be populated when tracking changes
-                },
-              ]
+                // Only set ascending array if at least one direction is explicitly DESC
+                const hasExplicitDirection = expressionsWithDirections.some(
+                  (exprWithDir) => exprWithDir.direction !== undefined
+                );
+
+                return [
+                  key,
+                  {
+                    // Required fields
+                    name: index._properties.name ?? `${base.tableName}_${key}`,
+                    table: base.tableName,
+                    schema: base.schema,
+                    expressions,
+
+                    // Fields with defaults
+                    unique: index._properties.options.unique ?? false,
+                    concurrently: false, // Default to false for safety
+                    ifNotExists: false, // Default to false for safety
+                    nullsNotDistinct: false, // Default to false for standard behavior
+                    inverted: index._properties.options.inverted ?? false,
+
+                    // Optional fields
+                    method: index._properties.options.method,
+                    ascending: hasExplicitDirection ? ascending : undefined,
+                    storingColumns:
+                      index._properties.storingColumns?.map(
+                        (col) => col.value
+                      ) ?? [],
+                    whereClause: index._properties.condition,
+                    withClause: undefined,
+                    storageParameters: undefined,
+                    operatorClass: index._properties.options.operatorClass,
+                    previousState: undefined, // Will be populated when tracking changes
+                  },
+                ];
+              }
             )
           )
         : undefined;
@@ -175,6 +209,12 @@ export function buildTableFromSchemaBase<Schema, S extends BaseDbDiscriminator>(
         },
       });
     },
+    models(options) {
+      return buildTableFromSchemaBase(config, {
+        ...base,
+        models: options,
+      });
+    },
   };
   return builder;
 }
@@ -192,7 +232,7 @@ export type ApplyIndexNamesToTable<
               Table['tableName'],
               Key & string,
               Table['_internalIndexes'][Key] extends infer O extends
-                IndexDefinition<any, any>
+                IndexDefinition<GenericAny, GenericAny>
                 ? O
                 : never
             >
@@ -348,6 +388,35 @@ export interface TableFromSchemaBuilder<
       Table,
       {
         introspection: TableIntrospectOptions;
+      },
+      S
+    >,
+    S
+  >;
+
+  /**
+   * Configure external model generation for this table.
+   *
+   * @example
+   * ```typescript
+   * .models({ dbt: true })
+   * .models({ dbt: true, columnOptions: { someColumn: { nameOverride: 'newName' } } })
+   * ```
+   *
+   * When `dbt: true` is specified, the write-dbt-models.ts script will generate
+   * a DBT model for this table in packages/data/dbt_cloud/models/cockroachdb/.
+   *
+   * Use `columnOptions` to customize individual column names in the generated model.
+   * Primary key columns are excluded from columnOptions.
+   */
+  models(
+    options: TableModelOptions<Schema, Table['primaryKey'][number]>
+  ): TableFromSchemaBuilder<
+    Schema,
+    SetTableBuilderParams<
+      Table,
+      {
+        models: TableModelOptions<Schema, Table['primaryKey'][number]>;
       },
       S
     >,

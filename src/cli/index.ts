@@ -1,10 +1,12 @@
 #!/usr/bin/env node
+// biome-ignore-all lint/suspicious/noConsole: override
 
 // Register swc-node for fast TypeScript compilation
 require('@swc-node/register');
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import chalk from 'chalk';
 import {
   array,
   binary,
@@ -23,8 +25,6 @@ import { extractConstraints } from '../migrations/extract-constraints';
 import { createTypeORMMigrationFormatter } from '../migrations/formatters';
 import { generateMigrationName } from '../migrations/generate-name';
 import type { MigrationDefinition } from '../migrations/types';
-
-const chalk = require('chalk');
 
 const DEFAULT_CONFIG_PATH = 'qb.config.ts';
 
@@ -71,6 +71,14 @@ const generateCommand = command({
         console.log(
           chalk.blue('Filtering entities:'),
           options.filter.join(', ')
+        );
+      } else {
+        console.log(
+          chalk.yellow('WARNING:'),
+          'No filter provided, Introspecting all entities.'
+        );
+        console.log(
+          'If you are only generating migrations for specific entities, use the --filter (-f) option with the table names separated by commas e.g. "-f table_1,table_2".'
         );
       }
       const result = await introspect(configPath, chalk, options.filter);

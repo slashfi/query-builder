@@ -1,14 +1,15 @@
 import {
+  filterMap,
   type AllOf,
   type AnyOf,
   type Expand,
+  type GenericAny,
   type IsAny,
   type TypecheckError,
-  filterMap,
 } from '@/core-utils';
 import { getAstNodeRepository } from './ast-node-repository';
-import type { BaseDbDiscriminator, DataTypeBase, ExpressionBase } from './base';
-import type { DataTypeBoolean, DataTypes, allDataTypes } from './data-type';
+import type { BaseDbDiscriminator, DataTypeBase, ExpressionBase } from './Base';
+import type { allDataTypes, DataTypeBoolean, DataTypes } from './DataType';
 import {
   type DbConfig,
   type IndexQbWhereOperator,
@@ -19,12 +20,12 @@ import type {
   CompiledIndexConfigBase,
   IndexColumnConfig,
 } from './ddl/index-config';
-import type { ExpressionBuilderShape } from './expression-builder-type';
-import { serializeValueForDataType } from './insert-builder';
-import { transformColumnForDataType } from './query-result';
+import type { ExpressionBuilderShape } from './ExpressionBuilder';
+import { serializeValueForDataType } from './InsertBuilder';
+import { transformColumnForDataType } from './QueryResult';
 import { managerLocalStorage } from './run-in-transaction';
 import { type SqlString, sql } from './sql-string';
-import { type TableSelector, createTableSelector } from './table-selector';
+import { createTableSelector, type TableSelector } from './table-selector';
 import type { TypescriptTypeFromDataType } from './util';
 
 export async function writeSelectFromIndexQuery<
@@ -53,7 +54,7 @@ export async function writeSelectFromIndexQuery<
       return Object.fromEntries(
         Object.entries(indexDef.table.columnSchema).map(([key]) => [
           key,
-          (_: any) => _[indexDef.table.defaultAlias][key],
+          (_: GenericAny) => _[indexDef.table.defaultAlias][key],
         ])
       );
     }
@@ -135,8 +136,7 @@ export async function writeSelectFromIndexQuery<
 
   // Handle direct conditions
   if (state.conditions) {
-    const conditions = filterMap(
-      Object.entries(state.conditions),
+    const conditions = filterMap(Object.entries(state.conditions),
       ([col, value]) => {
         const column = sql.column({
           name: col,
@@ -184,7 +184,7 @@ export async function writeSelectFromIndexQuery<
           if (op.$operator === 'between') {
             const {
               value: { min, max, options },
-            } = op as ReturnType<IndexWhereOperators<any>['between']>;
+            } = op as ReturnType<IndexWhereOperators<GenericAny>['between']>;
             const serializedMin = serializeValueForDataType(col, min, dataType);
             const serializedMax = serializeValueForDataType(col, max, dataType);
             if (!serializedMin || !serializedMax) {
@@ -343,7 +343,7 @@ export function transformIndexQueryBuilderResult(
   row: Record<string, unknown>,
   selectParts: { sqlString: SqlString; path: string; dataType: DataTypeBase }[]
 ): Record<string, unknown> {
-  const result: Record<string, any> = {};
+  const result: Record<string, GenericAny> = {};
   const dataTypeMap = new Map(
     selectParts.map((part) => [part.path, part.dataType])
   );
@@ -369,14 +369,14 @@ export function createIndexQueryBuilder<
 >(
   config: {
     discriminator: S;
-    query: DbConfig<S, any>['query'];
+    query: DbConfig<S, GenericAny>['query'];
   },
   indexDef: Base
 ): IndexQueryBuilder<Base, { base: Base }, S> {
   function createBuilder<P extends IndexQueryBuilderParams<Base, S>>(
     params: P
   ): IndexQueryBuilder<Base, P, S> {
-    const builder: IndexQueryBuilder<Base, any, S> = {
+    const builder: IndexQueryBuilder<Base, GenericAny, S> = {
       _params: params,
 
       where(conditions) {
@@ -384,14 +384,14 @@ export function createIndexQueryBuilder<
           ...params,
           conditions,
           isAwaitable: true,
-        }) as IndexQueryBuilder<Base, any, S>;
+        }) as IndexQueryBuilder<Base, GenericAny, S>;
       },
 
       orderBy(config) {
         return createBuilder({
           ...params,
           orderBy: config,
-        }) as IndexQueryBuilder<Base, any, S>;
+        }) as IndexQueryBuilder<Base, GenericAny, S>;
       },
 
       andWhere(
@@ -410,29 +410,30 @@ export function createIndexQueryBuilder<
               },
             ]) as unknown as SelectContext<Base, S>
           ),
-        }) as IndexQueryBuilder<Base, any, S>;
+        }) as IndexQueryBuilder<Base, GenericAny, S>;
       },
 
       limit(value: number) {
         return createBuilder({ ...params, limit: value }) as IndexQueryBuilder<
           Base,
-          any,
+          GenericAny,
           S
         >;
       },
 
-      throwsIfEmpty() {
+      throwsIfEmpty(errorFactory?: () => Error) {
         return createBuilder({
           ...params,
           throwsIfEmpty: true,
-        }) as IndexQueryBuilder<Base, any, S>;
+          throwsIfEmptyFn: errorFactory,
+        }) as IndexQueryBuilder<Base, GenericAny, S>;
       },
 
       select(format?: { [key: string]: SelectField<Base, S> }) {
         return createBuilder({
           ...params,
           selectFormat: format ?? {},
-        }) as IndexQueryBuilder<Base, any, S>;
+        }) as IndexQueryBuilder<Base, GenericAny, S>;
       },
 
       expectOne() {
@@ -440,14 +441,18 @@ export function createIndexQueryBuilder<
           ...params,
           throwsIfEmpty: true,
           expectsUniqueResult: true,
-        }) as IndexQueryBuilder<Base, any, S>;
+        }) as IndexQueryBuilder<Base, GenericAny, S>;
       },
 
       ...(params.isAwaitable && {
-        // biome-ignore lint/suspicious/noThenProperty: <explanation>
+        // biome-ignore lint/suspicious/noThenProperty: override
         then(
-          resolve?: ((value: any) => any | PromiseLike<any>) | null,
-          reject?: ((reason: unknown) => any | PromiseLike<any>) | null
+          resolve?:
+            | ((value: GenericAny) => GenericAny | PromiseLike<GenericAny>)
+            | null,
+          reject?:
+            | ((reason: unknown) => GenericAny | PromiseLike<GenericAny>)
+            | null
         ): Promise<void> {
           // Build query
           return writeSelectFromIndexQuery(indexDef, params)
@@ -473,7 +478,9 @@ export function createIndexQueryBuilder<
 
                 // Handle empty results
                 if (limitedResults.length === 0 && params.throwsIfEmpty) {
-                  throw new Error('No results found');
+                  throw (
+                    params.throwsIfEmptyFn?.() ?? new Error('No results found')
+                  );
                 }
 
                 // Handle unique result expectation
@@ -530,6 +537,7 @@ interface IndexQueryBuilderParams<
   isAwaitable?: boolean | undefined;
   expectsUniqueResult?: boolean | undefined;
   throwsIfEmpty?: boolean | undefined;
+  throwsIfEmptyFn?: (() => Error) | undefined;
   limit?: number | undefined;
   selectFormat?: { [key: string]: SelectField<Base, S> } | undefined;
   conditions?: Record<string, unknown>;
@@ -635,7 +643,9 @@ export type IndexQueryBuilder<
     limit: Value
   ): IndexQueryBuilder<Base, SetParams<Base, Params, { limit: Value }, S>, S>;
 
-  throwsIfEmpty(): IndexQueryBuilder<
+  throwsIfEmpty(
+    errorFactory?: () => Error
+  ): IndexQueryBuilder<
     Base,
     SetParams<Base, Params, { throwsIfEmpty: true }, S>,
     S
@@ -898,26 +908,28 @@ type SelectResult<
 /**
  * Type helper to extract column names from an index config
  */
-export type IndexColumns<T extends CompiledIndexConfigBase<any>> = T extends {
-  getOptions: () => Promise<{
-    columns?: infer C extends {
-      [Key in keyof T['table']['columnSchema']]?: IndexColumnConfig;
-    };
-  }>;
-}
-  ? C
-  : never;
+export type IndexColumns<T extends CompiledIndexConfigBase<GenericAny>> =
+  T extends {
+    getOptions: () => Promise<{
+      columns?: infer C extends {
+        [Key in keyof T['table']['columnSchema']]?: IndexColumnConfig;
+      };
+    }>;
+  }
+    ? C
+    : never;
 
 /**
  * Type helper to check if an index is unique
  */
-export type IsUniqueIndex<T extends CompiledIndexConfigBase<any>> = T extends {
-  index: { unique: true };
-}
-  ? true
-  : false;
+export type IsUniqueIndex<T extends CompiledIndexConfigBase<GenericAny>> =
+  T extends {
+    index: { unique: true };
+  }
+    ? true
+    : false;
 
-type IndexSelectColumns<T extends CompiledIndexConfigBase<any>> = {
+type IndexSelectColumns<T extends CompiledIndexConfigBase<GenericAny>> = {
   [Key in keyof IndexColumns<T>]: Key extends keyof T['table']['columnSchema']
     ? TypescriptTypeFromDataType<T['table']['columnSchema'][Key]['dataType']>
     : never;

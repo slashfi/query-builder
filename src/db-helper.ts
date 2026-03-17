@@ -1,25 +1,26 @@
-import type { BaseDbDiscriminator, TableBase } from './base';
+import type { GenericAny } from '@/core-utils';
+import type { BaseDbDiscriminator, TableBase } from './Base';
 import type { __queryBuilderIndexes } from './ddl/codegen/index-metadata';
 import {
   type CompiledIndexConfigBase,
   type CompiledIndexesConfig,
-  type UserIndexOverrides,
   indexConfig,
+  type UserIndexOverrides,
 } from './ddl/index-config';
 import { createFrom } from './from-builder';
+import { createInsert } from './InsertBuilder';
 import {
-  type IndexQueryBuilder,
   createIndexQueryBuilder,
+  type IndexQueryBuilder,
 } from './index-query-builder';
-import { createInsert } from './insert-builder';
 import { createTransaction, managerLocalStorage } from './run-in-transaction';
-import type { SqlString } from './sql-string';
+import { type SqlString, sqlConstructor } from './sql-string';
 import {
-  type TableFromSchemaBuilder,
   buildTableFromSchemaBase,
+  type TableFromSchemaBuilder,
 } from './table-from-schema-builder';
-import { createUpdate } from './update-builder';
-import { type ValuesTableBuilder, createValuesBuilder } from './values-builder';
+import { createUpdate } from './UpdateBuilder';
+import { createValuesBuilder, type ValuesTableBuilder } from './values-builder';
 
 export function createDbDiscriminator<Name extends string>(name: Name) {
   return Object.assign(Symbol(name), {
@@ -37,7 +38,7 @@ export interface DbConfig<S extends BaseDbDiscriminator, Manager> {
     queryName: string,
     sql: SqlString,
     manager?: Manager
-  ) => Promise<Record<string, any>[]>;
+  ) => Promise<Record<string, GenericAny>[]>;
   /**
    * Function to start a transaction
    */
@@ -126,7 +127,7 @@ export interface IndexWhereOperators<T>
   extends ReturnType<typeof indexWhereOperators<T>> {}
 
 export interface Db<S extends BaseDbDiscriminator>
-  extends IndexWhereOperators<any> {
+  extends IndexWhereOperators<GenericAny> {
   /**
    * Register an entity with the database
    */
@@ -154,6 +155,10 @@ export interface Db<S extends BaseDbDiscriminator>
     },
     S
   >;
+
+  sql: <T extends Record<string, GenericAny>>(
+    ...params: Parameters<typeof sqlConstructor>
+  ) => Promise<T[]>;
 
   /**
    * Start a FROM query for a registered entity
@@ -252,6 +257,11 @@ export function createDb<Manager, const S extends BaseDbDiscriminator>(
         );
       }
       entities.set(key, entity.Table);
+    },
+
+    sql: (...params) => {
+      const res = sqlConstructor(...params);
+      return config.query('raw_query', res) as GenericAny;
     },
 
     buildTableFromSchema: () => buildTableFromSchemaBase(config),

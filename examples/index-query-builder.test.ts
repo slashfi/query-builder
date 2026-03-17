@@ -13,10 +13,11 @@ import {
   it,
 } from 'vitest';
 import {
-  TestItemsTable,
   db,
   queryExecutor,
+  TestItemsTable,
 } from './index-query-builder.schema';
+
 /**
  * These tests require a running CockroachDB instance.
  * Run `yarn test:db:setup` before running the tests.
@@ -507,6 +508,80 @@ describe('Index Query Builder Integration', () => {
         name: 'item5',
         count: 10,
         status: 'active',
+      });
+    });
+  });
+
+  describe('Primary Key Index', () => {
+    it('executes SELECT query using primaryKey index', async () => {
+      const result = await db
+        .selectFromIndex(TestItemsTable.idx.primaryKey)
+        .where({ id: '1' });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        id: '1',
+      });
+    });
+
+    it('executes SELECT with IN operator on primaryKey', async () => {
+      const result = await db
+        .selectFromIndex(TestItemsTable.idx.primaryKey)
+        .where({ id: db.in(['1', '2']) });
+
+      expect(result).toHaveLength(2);
+      expect(result.map((r) => r.id).sort()).toEqual(['1', '2']);
+    });
+
+    it('executes SELECT with custom columns using primaryKey', async () => {
+      const result = await db
+        .selectFromIndex(TestItemsTable.idx.primaryKey)
+        .select({
+          item_id: (_) => _.testItems.id,
+          item_name: (_) => _.testItems.name,
+          item_status: (_) => _.testItems.status,
+        })
+        .where({ id: '1' });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        item_id: '1',
+        item_name: 'item1',
+        item_status: 'active',
+      });
+    });
+
+    it('returns single result with expectOne on primaryKey', async () => {
+      const result = await db
+        .selectFromIndex(TestItemsTable.idx.primaryKey)
+        .where({ id: '1' })
+        .expectOne();
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('1');
+    });
+
+    it('throws on empty result with throwsIfEmpty on primaryKey', async () => {
+      await expect(
+        db
+          .selectFromIndex(TestItemsTable.idx.primaryKey)
+          .where({ id: 'nonexistent' })
+          .throwsIfEmpty()
+      ).rejects.toThrow('No results found');
+    });
+
+    it('executes SELECT all columns using primaryKey', async () => {
+      const result = await db
+        .selectFromIndex(TestItemsTable.idx.primaryKey)
+        .select()
+        .where({ id: '1' });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        id: '1',
+        name: 'item1',
+        status: 'active',
+        count: 10,
       });
     });
   });

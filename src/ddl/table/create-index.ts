@@ -23,6 +23,10 @@ export function createIndex(definition: DdlIndexDefinition): SqlString {
     parts.push(sql`UNIQUE`);
   }
 
+  if (definition.inverted) {
+    parts.push(sql`INVERTED`);
+  }
+
   parts.push(sql`INDEX`);
 
   if (definition.concurrently) {
@@ -47,12 +51,21 @@ export function createIndex(definition: DdlIndexDefinition): SqlString {
     );
   }
 
-  // Expression list with optional ASC/DESC
+  // Expression list with optional operator class and ASC/DESC
+  // CockroachDB syntax: `column opclass [ASC|DESC]`
   const expressionDefs = definition.expressions.map((expr, i) => {
-    if (definition.ascending && definition.ascending[i] === false) {
-      return sql`${expr} DESC`;
+    let result = expr;
+
+    // Operator class comes before direction
+    if (definition.operatorClass) {
+      result = sql`${result} ${sql.__dangerouslyConstructRawSql(definition.operatorClass)}`;
     }
-    return expr;
+
+    if (definition.ascending && definition.ascending[i] === false) {
+      result = sql`${result} DESC`;
+    }
+
+    return result;
   });
 
   parts.push(sql`(${sql.join(expressionDefs, ', ')})`);

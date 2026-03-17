@@ -1,1 +1,1 @@
-export * from './clause-from-expression';
+export * from './ClauseFromExpression';

@@ -12,7 +12,7 @@ import {
   expect,
   it,
 } from 'vitest';
-import { UsersTable, db, queryExecutor } from './migrations.schema';
+import { db, queryExecutor, UsersTable } from './migrations.schema';
 
 describe('Migration Integration', () => {
   let pgDb: pg.Client;

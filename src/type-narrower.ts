@@ -1,37 +1,38 @@
+import { filterUndefined, type GenericAny } from '@/core-utils';
 import { getNodeName } from './ast-node-repository';
-import type { BaseDbDiscriminator, ClauseBase, ExpressionBase } from './base';
-import { clauseFromExpression } from './clauses/clause-from-expression';
-import type { ConditionParams } from './conditional-params';
-import { constantForArray } from './constants/constant-for-array';
-import { constantForBoolean } from './constants/constant-for-boolean';
-import { constantForFloat } from './constants/constant-for-float';
-import { constantForInteger } from './constants/constant-for-integer';
-import { constantForJson } from './constants/constant-for-json';
-import { constantForTimestamp } from './constants/constant-for-timestamp';
-import { constantForVarchar } from './constants/constant-for-varchar';
-import { expressionBracket } from './expressions/expression-bracket';
-import { expressionColumn } from './expressions/expression-column';
-import { expressionIf } from './expressions/expression-if';
-import { expressionLeftRightBinary } from './expressions/expression-left-right-binary';
-import { expressionRightUnaryBinary } from './expressions/expression-right-unary-binary';
-import { expressionSelectColumns } from './expressions/expression-select-columns';
+import type { BaseDbDiscriminator, ClauseBase, ExpressionBase } from './Base';
+import type { ConditionParams } from './ConditionParams';
+import { clauseFromExpression } from './clauses/ClauseFromExpression';
+import { constantForArray } from './constants/ConstantForArray';
+import { constantForBoolean } from './constants/ConstantForBoolean';
+import { constantForFloat } from './constants/ConstantForFloat';
+import { constantForInteger } from './constants/ConstantForInteger';
+import { constantForJson } from './constants/ConstantForJson';
+import { constantForTimestamp } from './constants/ConstantForTimestamp';
+import { constantForVarchar } from './constants/ConstantForVarchar';
+import { expressionBracket } from './expressions/ExpressionBracket';
+import { expressionColumn } from './expressions/ExpressionColumn';
+import { expressionIf } from './expressions/ExpressionIf';
+import { expressionLeftRightBinary } from './expressions/ExpressionLeftRightBinary';
+import { expressionRightUnaryBinary } from './expressions/ExpressionRightUnaryBinary';
+import { expressionSelectColumns } from './expressions/ExpressionSelectColumns';
 import {
   type BinaryComparatorOptions,
   type OperatorBinaryComparator,
   operatorBinaryComparator,
-} from './operators/operator-binary-comparator';
-import { operatorBinaryLogical } from './operators/operator-binary-logical';
-import { operatorUnaryIs } from './operators/operator-unary-is';
-import type { QueryBuilderParams } from './query-builder-params';
+} from './operators/OperatorBinaryComparator';
+import { operatorBinaryLogical } from './operators/OperatorBinaryLogical';
+import { operatorUnaryIs } from './operators/OperatorUnaryIs';
+import type { QueryBuilderParams } from './QueryBuilderParams';
 
-export type TypeNarrowResult<T = any> = {
+export type TypeNarrowResult<T = GenericAny> = {
   passed: boolean;
-  context: any;
+  context: GenericAny;
   items: T[];
 };
 
 export function applyTypeNarrow<S extends BaseDbDiscriminator>(
-  result: any[],
+  result: GenericAny[],
   params: QueryBuilderParams<S>,
   conditions: ConditionParams
 ): TypeNarrowResult {
@@ -64,9 +65,9 @@ export function applyTypeNarrow<S extends BaseDbDiscriminator>(
 }
 
 function applyTypeNarrowingOnClause<S extends BaseDbDiscriminator>(
-  result: any[],
+  result: GenericAny[],
   params: QueryBuilderParams<S>,
-  clause: ClauseBase<any>
+  clause: ClauseBase<GenericAny>
 ): TypeNarrowResult {
   if (clauseFromExpression.isNode(clause)) {
     return applyTypeNarrowingOnExpression(result, params, clause.expr);
@@ -82,9 +83,9 @@ function applyTypeNarrowingOnClause<S extends BaseDbDiscriminator>(
 }
 
 function applyTypeNarrowingOnExpression<S extends BaseDbDiscriminator>(
-  result: any[],
+  result: GenericAny[],
   params: QueryBuilderParams<S>,
-  expression: ExpressionBase<any>
+  expression: ExpressionBase<GenericAny>
 ): TypeNarrowResult {
   if (expressionLeftRightBinary.isNode(expression)) {
     const operator = expression.operator;
@@ -220,7 +221,7 @@ function applyTypeNarrowingOnExpression<S extends BaseDbDiscriminator>(
       expressionColumn.isNode(leftExpr) &&
       operatorUnaryIs.isNode(expression.rightUnaryOperator)
     ) {
-      const selectItemsMatching = params.select
+      const selectItemsMatching = filterUndefined(params.select
         .map((val) => {
           if (expressionSelectColumns.isNode(val.expression)) {
             if (val.expression.alias === leftExpr.tableAlias) {
@@ -290,7 +291,7 @@ function applyTypeNarrowingOnExpression<S extends BaseDbDiscriminator>(
             }
           }
         })
-        .filter((val) => !!val);
+        );
 
       const failed = selectItemsMatching.find((value) => !value.passed);
 
@@ -339,12 +340,12 @@ function applyTypeNarrowingOnExpression<S extends BaseDbDiscriminator>(
 }
 
 function evaluateExpression<S extends BaseDbDiscriminator>(
-  result: any[],
+  result: GenericAny[],
   params: QueryBuilderParams<S>,
-  expr: ExpressionBase<any>
+  expr: ExpressionBase<GenericAny>
 ) {
   if (expressionColumn.isNode(expr)) {
-    const items = params.select
+    const items = filterUndefined(params.select
       .map((val) => {
         if (expressionColumn.isNode(val.expression)) {
           if (
@@ -363,7 +364,7 @@ function evaluateExpression<S extends BaseDbDiscriminator>(
           }
         }
       })
-      .filter((val) => !!val);
+      );
 
     if (!items.length) {
       return;
@@ -391,8 +392,8 @@ function evaluateExpression<S extends BaseDbDiscriminator>(
 //
 
 function compareEvaluatedExpressions(
-  value1: any,
-  value2: any,
+  value1: GenericAny,
+  value2: GenericAny,
   comparator: OperatorBinaryComparator<BinaryComparatorOptions>
 ) {
   if (typeof value1 !== typeof value2) {

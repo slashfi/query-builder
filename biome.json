@@ -1,7 +1,20 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "organizeImports": {
-    "enabled": true
+  "files": {
+    "includes": [
+      "**",
+      "!node_modules",
+      "!*.log",
+      "!*.swcrc",
+      "!.rush",
+      "!.vscode",
+      "!tmp*",
+      "!build",
+      "!dist",
+      "!lib",
+      "!esm",
+      "!examples"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -21,17 +34,38 @@
     "clientKind": "git",
     "useIgnoreFile": true
   },
+  "assist": {
+    "actions": {
+      "recommended": true,
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
   "linter": {
-    "enabled": true,
     "rules": {
       "recommended": true,
       "suspicious": {
         "noConfusingVoidType": "off",
-        "noExplicitAny": "off"
+        "useIterableCallbackReturn": "off",
+        "noFocusedTests": {
+          "level": "error",
+          "fix": "none"
+        },
+        "noConsole": {
+          "level": "error",
+          "fix": "none"
+        }
       },
       "correctness": {
-        "noUnusedVariables": "error",
-        "noUnusedImports": "error",
+        "noUnusedVariables": {
+          "level": "error",
+          "fix": "none"
+        },
+        "noUnusedImports": {
+          "level": "error",
+          "fix": "safe"
+        },
         "useExhaustiveDependencies": "off"
       },
       "complexity": {
@@ -39,8 +73,7 @@
         "noForEach": "off",
         "noBannedTypes": "off",
         "noStaticOnlyClass": "off",
-        "noUselessSwitchCase": "off",
-        "noUselessTypeConstraint": "off"
+        "noUselessSwitchCase": "off"
       },
       "performance": {
         "noAccumulatingSpread": "off"

@@ -1,7 +1,7 @@
 import pg from 'pg';
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { TableBase } from '../base';
-import { type Db, createDb, createDbDiscriminator } from '../db-helper';
+import type { TableBase } from '../Base';
+import { createDb, createDbDiscriminator, type Db } from '../db-helper';
 
 describe('Transaction support', () => {
   let pgDb: pg.Client;
@@ -12,12 +12,14 @@ describe('Transaction support', () => {
   };
 
   beforeEach(async () => {
+    // biome-ignore lint/suspicious/noConsole: override
     console.log('Setting up test...');
     process.env.TZ = 'Etc/UTC';
 
     // Wait for database to be ready
     let retries = 5;
     while (retries > 0) {
+      // biome-ignore lint/suspicious/noConsole: override
       console.log('Retrying...');
       try {
         // Try to connect

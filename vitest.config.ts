@@ -7,5 +7,6 @@ export default defineConfig({
   test: {
     exclude: ['lib'],
     include: ['src/**/*.test.ts', 'examples/**/*.test.ts'],
+    globalSetup: ['./vitest.setup.ts'],
   },
 });

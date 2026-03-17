@@ -121,6 +121,71 @@ describe('Down Migrations', () => {
       );
     });
 
+    it('should include GENERATED syntax when adding computed columns', () => {
+      interface UserSchema {
+        id: string;
+        firstName: string;
+        lastName: string;
+        fullName: string; // computed
+      }
+
+      class UserTable {
+        static readonly Table = db
+          .buildTableFromSchema<UserSchema>()
+          .columns({
+            id: (_) => _.varchar(),
+            firstName: (_) => _.varchar(),
+            lastName: (_) => _.varchar(),
+            fullName: (_) =>
+              _.varchar().computed(sql`CONCAT(first_name, ' ', last_name)`),
+          })
+          .primaryKey('id')
+          .tableName('users')
+          .defaultAlias('users')
+          .introspect()
+          .build();
+      }
+
+      const diff: SchemaDiff = {
+        missingTables: [],
+        extraTables: [],
+        modifiedTables: [
+          {
+            name: 'users',
+            missingColumns: [
+              {
+                name: 'fullName',
+                type: { schema: 'varchar' },
+                nullable: { schema: false },
+                computedExpression: {
+                  schema: sql`CONCAT(first_name, ' ', last_name)`,
+                },
+              },
+            ],
+            extraColumns: [],
+            modifiedColumns: [],
+            missingIndexes: [],
+            extraIndexes: [],
+            modifiedIndexes: [],
+          },
+        ],
+      };
+
+      const { up, down } = generateMigrations(diff, [UserTable]);
+
+      // Verify up adds the column with computed expression
+      const upSql = injectParameters(up[0]);
+      expect(upSql).toContain(
+        'ALTER TABLE "public"."users" ADD COLUMN "fullName"'
+      );
+      expect(upSql).toContain(
+        " VARCHAR NOT NULL AS (CONCAT(first_name, ' ', last_name)) STORED"
+      );
+
+      // Verify down drops the column
+      expect(injectParameters(down[0])).toContain('DROP COLUMN "fullName"');
+    });
+
     it('should correctly reverse ALTER COLUMN type changes', () => {
       interface UserSchema {
         id: string;
@@ -433,12 +498,14 @@ describe('Down Migrations', () => {
                 schema: 'public',
                 expressions: [sql`email`],
                 unique: true,
+                inverted: false,
                 method: 'btree',
                 ascending: [true],
                 storingColumns: [],
                 nullsNotDistinct: false,
                 withClause: undefined,
                 storageParameters: undefined,
+                operatorClass: undefined,
                 whereClause: undefined,
                 ifNotExists: false,
                 concurrently: false,

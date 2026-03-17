@@ -1,12 +1,12 @@
-import type { BaseDbDiscriminator, ExpressionBase } from '../base';
-import type { DataTypeBoolean } from '../data-type';
-import { createExpressionBuilder } from '../expression-builder';
+import type { BaseDbDiscriminator, ExpressionBase } from '../Base';
+import type { DataTypeBoolean } from '../DataType';
 import type {
   ExpressionBuilder,
   ExpressionBuilderShape,
-} from '../expression-builder-type';
-import { expressionLeftRightBinary } from '../expressions/expression-left-right-binary';
-import { operatorBinaryLogical } from '../operators/operator-binary-logical';
+} from '../ExpressionBuilder';
+import { createExpressionBuilder } from '../expression-builder';
+import { expressionLeftRightBinary } from '../expressions/ExpressionLeftRightBinary';
+import { operatorBinaryLogical } from '../operators/OperatorBinaryLogical';
 
 export const and: AndValue = (...[first, ...rest]) => {
   return createExpressionBuilder(

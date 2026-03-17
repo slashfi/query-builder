@@ -1,6 +1,6 @@
 import type { TypecheckError } from '@/core-utils';
 import { describe, expectTypeOf, it } from 'vitest';
-import { ThenableTestTable, db } from './thenable-result.schema';
+import { db, ThenableTestTable } from './thenable-result.schema';
 
 describe('ThenableResult type combinations', () => {
   describe('Non-strict index (by_name, columnsOnly: false)', () => {

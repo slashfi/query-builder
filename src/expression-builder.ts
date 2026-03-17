@@ -1,46 +1,50 @@
-import type { BaseDbDiscriminator, ExpressionBase } from './base';
+import type { GenericAny } from '@/core-utils';
+import type { BaseDbDiscriminator, ExpressionBase } from './Base';
 import type { ConstantBase } from './constants/base';
-import { constantForArray } from './constants/constant-for-array';
-import { constantForBoolean } from './constants/constant-for-boolean';
-import { constantForFloat } from './constants/constant-for-float';
-import { constantForInteger } from './constants/constant-for-integer';
-import { constantForJson } from './constants/constant-for-json';
-import { constantForTimestamp } from './constants/constant-for-timestamp';
-import { constantForVarchar } from './constants/constant-for-varchar';
+import { constantForArray } from './constants/ConstantForArray';
+import { constantForBoolean } from './constants/ConstantForBoolean';
+import { constantForDecimal } from './constants/ConstantForDecimal';
+import { constantForFloat } from './constants/ConstantForFloat';
+import { constantForInteger } from './constants/ConstantForInteger';
+import { constantForJson } from './constants/ConstantForJson';
+import { constantForTimestamp } from './constants/ConstantForTimestamp';
+import { constantForVarchar } from './constants/ConstantForVarchar';
 import {
   type DataTypeBoolean,
-  type DataTypeUnion,
   type DataTypes,
+  type DataTypeUnion,
   getNonNullableDataType,
-} from './data-type';
+} from './DataType';
 import type {
   ExpressionBuilder,
   ExpressionBuilderShape,
   SelectorForJson,
-} from './expression-builder-type';
-import { expressionBracket } from './expressions/expression-bracket';
-import { expressionJsonPropertyAccess } from './expressions/expression-json-property-access';
-import { expressionLeftRightBinary } from './expressions/expression-left-right-binary';
-import { expressionRightUnaryBinary } from './expressions/expression-right-unary-binary';
-import { expressionSubqueryBinary } from './expressions/expression-subquery-binary';
-import { operatorBinaryComparator } from './operators/operator-binary-comparator';
-import { operatorBinaryLogical } from './operators/operator-binary-logical';
-import { operatorBinarySimilarity } from './operators/operator-binary-similarity';
-import { operatorUnaryIs } from './operators/operator-unary-is';
+} from './ExpressionBuilder';
+import { expressionBracket } from './expressions/ExpressionBracket';
+import { expressionJsonPropertyAccess } from './expressions/ExpressionJsonPropertyAccess';
+import { expressionLeftRightBinary } from './expressions/ExpressionLeftRightBinary';
+import { expressionRightUnaryBinary } from './expressions/ExpressionRightUnaryBinary';
+import { expressionSubqueryBinary } from './expressions/ExpressionSubqueryBinary';
+import { operatorBinaryArrayContains } from './operators/OperatorBinaryArrayContains';
+import { operatorBinaryComparator } from './operators/OperatorBinaryComparator';
+import { operatorBinaryJsonbContains } from './operators/OperatorBinaryJsonbContains';
+import { operatorBinaryLogical } from './operators/OperatorBinaryLogical';
+import { operatorBinarySimilarity } from './operators/OperatorBinarySimilarity';
+import { operatorUnaryIs } from './operators/OperatorUnaryIs';
 
 const expressionBuilderShapeSymbol = Symbol('expressionBuilderShape');
 
 export type MakeExpressionBuilderShape<
   T extends Pick<
-    ExpressionBuilderShape<any>,
+    ExpressionBuilderShape<GenericAny>,
     '_expression'
-  > = ExpressionBuilderShape<ExpressionBase<any>>,
+  > = ExpressionBuilderShape<ExpressionBase<GenericAny>>,
 > = T & {
   $type: typeof expressionBuilderShapeSymbol;
 };
 
 export function makeExpressionBuilderShape<
-  Expr extends ExpressionBase<any>,
+  Expr extends ExpressionBase<GenericAny>,
   Shape extends Pick<ExpressionBuilderShape<Expr>, '_expression'>,
 >(expr: Shape): ExpressionBuilderShape<Expr> {
   return {
@@ -50,8 +54,8 @@ export function makeExpressionBuilderShape<
 }
 
 export function isExpressionBuilderShape(
-  value: any
-): value is ExpressionBuilderShape<ExpressionBase<any>> {
+  value: GenericAny
+): value is ExpressionBuilderShape<ExpressionBase<GenericAny>> {
   return (
     typeof value === 'object' &&
     !!value.$type &&
@@ -60,10 +64,10 @@ export function isExpressionBuilderShape(
 }
 
 export function createExpressionBuilder<
-  Expr extends ExpressionBase<any>,
+  Expr extends ExpressionBase<GenericAny>,
   S extends BaseDbDiscriminator,
 >(leftExpr: Expr): ExpressionBuilder<Expr, S> {
-  const expressionBuilder: ExpressionBuilder<any, S> = {
+  const expressionBuilder: ExpressionBuilder<GenericAny, S> = {
     _expression: leftExpr,
     $type: expressionBuilderShapeSymbol,
     asc() {
@@ -82,7 +86,7 @@ export function createExpressionBuilder<
       return [createExpressionBuilder(leftExpr), alias] as const;
     },
     and: (targetExpr) => {
-      return createExpressionBuilder<any, S>(
+      return createExpressionBuilder<GenericAny, S>(
         expressionLeftRightBinary.create({
           leftExpr: expressionBracket.create(leftExpr),
           operator: operatorBinaryLogical.create('AND'),
@@ -93,7 +97,7 @@ export function createExpressionBuilder<
       );
     },
     or: (targetExpr) => {
-      return createExpressionBuilder<any, S>(
+      return createExpressionBuilder<GenericAny, S>(
         expressionLeftRightBinary.create({
           leftExpr,
           operator: operatorBinaryLogical.create('OR'),
@@ -102,7 +106,7 @@ export function createExpressionBuilder<
       );
     },
     notEquals: (targetExpr) => {
-      return createExpressionBuilder<any, S>(
+      return createExpressionBuilder<GenericAny, S>(
         expressionLeftRightBinary.create({
           leftExpr,
           operator: operatorBinaryComparator.create('!='),
@@ -111,7 +115,7 @@ export function createExpressionBuilder<
       );
     },
     equals: (targetExpr) => {
-      return createExpressionBuilder<any, S>(
+      return createExpressionBuilder<GenericAny, S>(
         expressionLeftRightBinary.create({
           leftExpr,
           operator: operatorBinaryComparator.create('='),
@@ -120,7 +124,7 @@ export function createExpressionBuilder<
       );
     },
     in: (targetExpr) => {
-      return createExpressionBuilder<any, S>(
+      return createExpressionBuilder<GenericAny, S>(
         expressionSubqueryBinary.create({
           leftExpr,
           comparator: 'IN',
@@ -129,7 +133,7 @@ export function createExpressionBuilder<
       );
     },
     notIn: (targetExpr) => {
-      return createExpressionBuilder<any, S>(
+      return createExpressionBuilder<GenericAny, S>(
         expressionSubqueryBinary.create({
           leftExpr,
           comparator: 'NOT IN',
@@ -138,7 +142,7 @@ export function createExpressionBuilder<
       );
     },
     moreThan: (targetExpr) => {
-      return createExpressionBuilder<any, S>(
+      return createExpressionBuilder<GenericAny, S>(
         expressionLeftRightBinary.create({
           leftExpr,
           operator: operatorBinaryComparator.create('>'),
@@ -147,7 +151,7 @@ export function createExpressionBuilder<
       );
     },
     moreThanOrEquals: (targetExpr) => {
-      return createExpressionBuilder<any, S>(
+      return createExpressionBuilder<GenericAny, S>(
         expressionLeftRightBinary.create({
           leftExpr,
           operator: operatorBinaryComparator.create('>='),
@@ -156,7 +160,7 @@ export function createExpressionBuilder<
       );
     },
     lessThan: (targetExpr) => {
-      return createExpressionBuilder<any, S>(
+      return createExpressionBuilder<GenericAny, S>(
         expressionLeftRightBinary.create({
           leftExpr,
           operator: operatorBinaryComparator.create('<'),
@@ -165,7 +169,7 @@ export function createExpressionBuilder<
       );
     },
     lessThanOrEquals: (targetExpr) => {
-      return createExpressionBuilder<any, S>(
+      return createExpressionBuilder<GenericAny, S>(
         expressionLeftRightBinary.create({
           leftExpr,
           operator: operatorBinaryComparator.create('<='),
@@ -174,7 +178,7 @@ export function createExpressionBuilder<
       );
     },
     like: (targetExpr) => {
-      return createExpressionBuilder<any, S>(
+      return createExpressionBuilder<GenericAny, S>(
         expressionLeftRightBinary.create({
           leftExpr,
           operator: operatorBinarySimilarity.create('LIKE'),
@@ -182,8 +186,17 @@ export function createExpressionBuilder<
         })
       );
     },
+    ilike: (targetExpr) => {
+      return createExpressionBuilder<GenericAny, S>(
+        expressionLeftRightBinary.create({
+          leftExpr,
+          operator: operatorBinarySimilarity.create('ILIKE'),
+          rightExpr: exprOrConstant(targetExpr, leftExpr.dataType),
+        })
+      );
+    },
     isNull() {
-      return createExpressionBuilder<any, S>(
+      return createExpressionBuilder<GenericAny, S>(
         expressionRightUnaryBinary.create({
           leftExpr,
           rightUnaryOp: operatorUnaryIs.create('NULL'),
@@ -200,18 +213,49 @@ export function createExpressionBuilder<
         }) as ExpressionBase<DataTypeBoolean>
       );
     },
+    contains: (targetExpr: GenericAny) => {
+      const nonNullableDataType = getNonNullableDataType(leftExpr.dataType);
+      const isArrayType =
+        nonNullableDataType?.class === 'data_type' &&
+        nonNullableDataType.type === 'array';
+      const isJsonType =
+        nonNullableDataType?.class === 'data_type' &&
+        nonNullableDataType.type === 'json';
+
+      if (isArrayType) {
+        return createExpressionBuilder<GenericAny, S>(
+          expressionLeftRightBinary.create({
+            leftExpr,
+            operator: operatorBinaryArrayContains.create(),
+            rightExpr: exprOrConstant(targetExpr, leftExpr.dataType),
+          })
+        );
+      } else if (isJsonType) {
+        return createExpressionBuilder<GenericAny, S>(
+          expressionLeftRightBinary.create({
+            leftExpr,
+            operator: operatorBinaryJsonbContains.create(),
+            rightExpr: exprOrConstant(targetExpr, leftExpr.dataType),
+          })
+        );
+      } else {
+        throw new Error(
+          `Contains operator not supported for data type: ${leftExpr.dataType.type}`
+        );
+      }
+    },
     accessJsonPath: (fn) => {
       const res = fn(createJsonProxy());
       const { path } = res();
       return createExpressionBuilder(
-        expressionJsonPropertyAccess.create(leftExpr, path, false) as any
+        expressionJsonPropertyAccess.create(leftExpr, path, false) as GenericAny
       );
     },
     accessStringPath: (fn) => {
       const res = fn(createJsonProxy());
       const { path } = res();
       return createExpressionBuilder(
-        expressionJsonPropertyAccess.create(leftExpr, path, true) as any
+        expressionJsonPropertyAccess.create(leftExpr, path, true) as GenericAny
       );
     },
   };
@@ -221,7 +265,7 @@ export function createExpressionBuilder<
 
 export function createJsonProxy<
   S extends BaseDbDiscriminator,
->(): SelectorForJson<any, S> {
+>(): SelectorForJson<GenericAny, S> {
   function getNewProxy(path: string[] = []) {
     const baseFn = () => ({ path });
     return new Proxy(baseFn, {
@@ -231,7 +275,7 @@ export function createJsonProxy<
     });
   }
 
-  return getNewProxy() as SelectorForJson<any, S>;
+  return getNewProxy() as SelectorForJson<GenericAny, S>;
 }
 
 /**
@@ -239,17 +283,17 @@ export function createJsonProxy<
  * it will return a constant of the value.
  */
 export function exprOrConstant<S extends BaseDbDiscriminator>(
-  targetExpr: ExpressionBuilder<any, S> | any,
+  targetExpr: ExpressionBuilder<GenericAny, S> | GenericAny,
   desiredDataType: DataTypes
-): any {
+): GenericAny {
   return isExpressionBuilder(targetExpr)
     ? targetExpr._expression
-    : (dataTypeToConstant(desiredDataType, targetExpr) as any);
+    : (dataTypeToConstant(desiredDataType, targetExpr) as GenericAny);
 }
 
 export function isExpressionBuilder<S extends BaseDbDiscriminator>(
-  value: ExpressionBuilder<any, S> | any
-): value is ExpressionBuilder<ExpressionBase<any>, S> {
+  value: ExpressionBuilder<GenericAny, S> | GenericAny
+): value is ExpressionBuilder<ExpressionBase<GenericAny>, S> {
   return (
     !!value &&
     typeof value === 'object' &&
@@ -263,11 +307,11 @@ export function isExpressionBuilder<S extends BaseDbDiscriminator>(
 
 export function dataTypeToConstant<DataType extends DataTypes>(
   dataType: DataType,
-  value: any
-): ConstantBase<any> {
+  value: GenericAny
+): ConstantBase<GenericAny> {
   const finalDataType = (() => {
     return getNonNullableDataType(dataType);
-  })() as Exclude<DataType, DataTypeUnion<any>>;
+  })() as Exclude<DataType, DataTypeUnion<GenericAny>>;
 
   if (!finalDataType) {
     throw new Error(`Data type of ${dataType.type} is not supported`);
@@ -280,7 +324,7 @@ export function dataTypeToConstant<DataType extends DataTypes>(
           `Couldn't convert value of type ${typeof value} to boolean constant`
         );
       }
-      return constantForBoolean.create(value) as any;
+      return constantForBoolean.create(value) as GenericAny;
     case 'int':
       if (typeof value !== 'number') {
         throw new Error(
@@ -288,7 +332,7 @@ export function dataTypeToConstant<DataType extends DataTypes>(
         );
       }
 
-      return constantForInteger.create(value) as any;
+      return constantForInteger.create(value) as GenericAny;
     case 'float':
       if (typeof value !== 'number') {
         throw new Error(
@@ -296,14 +340,23 @@ export function dataTypeToConstant<DataType extends DataTypes>(
         );
       }
 
-      return constantForFloat.create(value) as any;
+      return constantForFloat.create(value) as GenericAny;
+    case 'decimal':
+      if (typeof value !== 'string') {
+        throw new Error(
+          `Couldn't convert value of type ${typeof value} to decimal constant`
+        );
+      }
+
+      return constantForDecimal.create(value) as GenericAny;
+
     case 'varchar':
       if (typeof value !== 'string') {
         throw new Error(
           `Couldn't convert value of type ${typeof value} to varchar constant`
         );
       }
-      return constantForVarchar.create(value) as any;
+      return constantForVarchar.create(value) as GenericAny;
     case 'array': {
       if (typeof value !== 'object' || !Array.isArray(value)) {
         throw new Error(
@@ -321,14 +374,16 @@ export function dataTypeToConstant<DataType extends DataTypes>(
       }
       return constantForArray.create(
         itemDataType,
-        value.map((item) => dataTypeToConstant(itemDataType, item) as any)
-      ) as any;
+        value.map(
+          (item) => dataTypeToConstant(itemDataType, item) as GenericAny
+        )
+      ) as GenericAny;
     }
     case 'json':
-      return constantForJson.create(value) as any;
+      return constantForJson.create(value) as GenericAny;
     case 'timestamp':
       if (value instanceof Date) {
-        return constantForTimestamp.create(value) as any;
+        return constantForTimestamp.create(value) as GenericAny;
       }
 
       throw new Error(

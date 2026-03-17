@@ -1,3 +1,4 @@
+import type { GenericAny } from '@/core-utils';
 import type { SqlString } from '.';
 
 // Alphanumeric + _ + - (case-insensitive)
@@ -29,7 +30,7 @@ export function rawIdentifier(value: string) {
   return value;
 }
 
-export const isArray = Array.isArray as <T extends readonly any[]>(
+export const isArray = Array.isArray as <T extends readonly GenericAny[]>(
   obj: unknown
 ) => obj is T;
 
@@ -43,7 +44,7 @@ export function injectParameters(sql: SqlString): string {
   const params = sql.getParameters();
 
   return query.replace(/\$(\d+)/g, (_, index) => {
-    const param = params[Number.parseInt(index) - 1];
+    const param = params[Number.parseInt(index, 10) - 1];
     if (param === undefined) {
       throw new Error(`Parameter $${index} not found`);
     }
