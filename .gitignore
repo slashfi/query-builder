@@ -1,7 +1,6 @@
 lib
 node_modules
 rush-logs
-examples/generated/
 
 # ESM build output
 esm/

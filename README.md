@@ -37,7 +37,7 @@ npm test           # Run tests
 npm run db:down    # Stop and clean up
 ```
 
-The CockroachDB instance runs on `localhost:26207` (SQL) and `localhost:8080` (Admin UI).
+The CockroachDB instance runs on `localhost:26207` (SQL) and `localhost:8181` (Admin UI).
 
 ## Why? - A bit of history on query performance at Slash
 

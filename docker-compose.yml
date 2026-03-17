@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
   crdb:
     image: cockroachdb/cockroach:v23.1.13
     ports:
       - "26207:26257" # SQL port
-      - "8080:8080"   # Admin UI
+      - "8181:8080"   # Admin UI
     command: start-single-node --insecure
     environment:
       COCKROACH_DATABASE: querybuilder
