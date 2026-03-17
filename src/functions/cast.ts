@@ -1,27 +1,29 @@
-import { assertUnreachable } from '@/core-utils';
-import type { BaseDbDiscriminator, ExpressionBase } from '../base';
+import { assertUnreachable, type GenericAny } from '@/core-utils';
+import type { BaseDbDiscriminator, ExpressionBase } from '../Base';
 import {
-  type DataTypeBoolean,
-  type DataTypeFloat,
-  type DataTypeInteger,
-  type DataTypeTimestamp,
-  type DataTypeVarchar,
   createDataTypeBoolean,
+  createDataTypeDecimal,
   createDataTypeFloat,
   createDataTypeInteger,
   createDataTypeNull,
   createDataTypeTimestamp,
   createDataTypeUnion,
   createDataTypeVarchar,
+  type DataTypeBoolean,
+  type DataTypeDecimal,
+  type DataTypeFloat,
+  type DataTypeInteger,
+  type DataTypeTimestamp,
+  type DataTypeVarchar,
   isDataTypeNullable,
-} from '../data-type';
+} from '../DataType';
 
-import { createExpressionBuilder } from '../expression-builder';
 import type {
   ExpressionBuilder,
   ExpressionBuilderShape,
-} from '../expression-builder-type';
-import { expressionCast } from '../expressions/expression-cast';
+} from '../ExpressionBuilder';
+import { createExpressionBuilder } from '../expression-builder';
+import { expressionCast } from '../expressions/ExpressionCast';
 import type { GetDataTypesForTs } from '../table-from-schema-column-builder';
 
 export const cast: CastValue = (expr, toType) => {
@@ -39,8 +41,10 @@ export const cast: CastValue = (expr, toType) => {
         return createDataTypeTimestamp();
       case 'boolean':
         return createDataTypeBoolean();
+      case 'decimal':
+        return createDataTypeDecimal();
       default:
-        throw assertUnreachable(toType);
+        return assertUnreachable(toType);
     }
   })();
 
@@ -51,11 +55,11 @@ export const cast: CastValue = (expr, toType) => {
         ? createDataTypeUnion([castedDt, createDataTypeNull()])
         : castedDt
     )
-  ) as ExpressionBuilder<any, BaseDbDiscriminator>;
+  ) as ExpressionBuilder<GenericAny, BaseDbDiscriminator>;
 };
 
 type CastValue = <
-  Base extends ExpressionBuilderShape<ExpressionBase<any>>,
+  Base extends ExpressionBuilderShape<ExpressionBase<GenericAny>>,
   ToType extends keyof Dts,
   S extends BaseDbDiscriminator,
 >(
@@ -80,4 +84,5 @@ type Dts = {
   int: DataTypeInteger;
   float: DataTypeFloat;
   timestamp: DataTypeTimestamp;
+  decimal: DataTypeDecimal;
 };

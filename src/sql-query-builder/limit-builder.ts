@@ -1,15 +1,16 @@
+import type { GenericAny } from '@/core-utils';
+import type { BaseDbDiscriminator } from '../Base';
 import {
   type QueryBuilderParams,
   type SetQbParams,
   updateQueryBuilderParams,
-} from '../query-builder-params';
-import type { BaseDbDiscriminator } from '../base';
+} from '../QueryBuilderParams';
 import type { AssertSqlQueryBuilder } from '../query-builder-asserter';
-import { createSqlQueryBuilder } from './sql-query-builder';
+import { createSqlQueryBuilder } from './SqlQueryBuilder';
 
 export function createSqlQueryBuilderLimit<S extends BaseDbDiscriminator>(
   params: QueryBuilderParams<S>
-): SqlQueryBuilderLimit<any, S> {
+): SqlQueryBuilderLimit<GenericAny, S> {
   return (value) => {
     return createSqlQueryBuilder(
       updateQueryBuilderParams(params, {

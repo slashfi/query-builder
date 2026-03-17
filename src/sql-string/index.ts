@@ -21,14 +21,17 @@ export interface SqlString {
 function getParameterized({
   database,
   index,
-}: { database: SqlDatabase; index: number }) {
+}: {
+  database: SqlDatabase;
+  index: number;
+}) {
   switch (database) {
     case 'cockroachdb':
       return `$${index}`;
     case 'snowflake':
       return '?';
     default:
-      assertUnreachable(database);
+      return assertUnreachable(database);
   }
 }
 
@@ -101,7 +104,7 @@ function internalSqlConstructor(
   };
 }
 
-function sqlConstructor(
+export function sqlConstructor(
   strings: ReadonlyArray<string>,
   ...parameters: ReadonlyArray<SqlString | ReadonlyArray<SqlString>>
 ): SqlString {
@@ -215,6 +218,14 @@ export interface SqlStringHelpers {
    * accept bind variables for those clauses. This will throw if the input is not a number.
    */
   rawNumber: (value: number) => SqlString;
+
+  /**
+   * A function that returns NOW() with precision applied.
+   * If precision is undefined, will default to microseconds (no truncation).
+   */
+  now: (options?: {
+    precision?: 'seconds' | 'milliseconds' | 'microseconds' | undefined;
+  }) => SqlString;
 }
 
 const sqlHelpers: SqlStringHelpers = {
@@ -230,6 +241,20 @@ const sqlHelpers: SqlStringHelpers = {
   },
   and: (parts) => sqlHelpers.join(parts, ' AND '),
   or: (parts) => sqlHelpers.join(parts, ' OR '),
+  now: (options) => {
+    const precision = options?.precision ?? 'microseconds';
+
+    switch (precision) {
+      case 'seconds':
+        return sqlConstructor`DATE_TRUNC('seconds', NOW())`;
+      case 'milliseconds':
+        return sqlConstructor`DATE_TRUNC('milliseconds', NOW())`;
+      case 'microseconds':
+        return sqlConstructor`NOW()`;
+      default:
+        return assertUnreachable(precision);
+    }
+  },
   column: ({ table, name, alias }) => {
     let column = table
       ? unsafeSqlConstructor`${escapeIdentifier(table)}.${escapeIdentifier(

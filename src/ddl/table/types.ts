@@ -1,6 +1,6 @@
-import type { DataTypeBase, ExpressionBase } from '../../base';
-import type { DataTypeBoolean } from '../../data-type';
-import type { ExpressionBuilderShape } from '../../expression-builder-type';
+import type { DataTypeBase, ExpressionBase } from '../../Base';
+import type { DataTypeBoolean } from '../../DataType';
+import type { ExpressionBuilderShape } from '../../ExpressionBuilder';
 import type { SqlString } from '../../sql-string';
 
 /**
@@ -11,6 +11,7 @@ export interface ColumnDefinition {
   dataType: DataTypeBase;
   constraints: ColumnConstraint[];
   default: SqlString | undefined;
+  computedExpression: SqlString | undefined;
 }
 
 /**
@@ -145,6 +146,7 @@ export interface DropColumnAction {
         dataType: DataTypeBase;
         constraints: ColumnConstraint[];
         default?: SqlString;
+        computedExpression?: SqlString;
       }
     | undefined;
 }
@@ -220,6 +222,7 @@ export interface DropIndexAction {
         schema: string;
         expressions: SqlString[];
         unique: boolean;
+        inverted: boolean;
         method: string | undefined;
         ascending: boolean[] | undefined;
         storingColumns: string[] | undefined;
@@ -227,6 +230,7 @@ export interface DropIndexAction {
         withClause: StorageParameters | undefined;
         storageParameters: StorageParameters | undefined;
         whereClause: SqlString | undefined;
+        operatorClass: string | undefined;
       }
     | undefined;
 }
@@ -285,11 +289,13 @@ export interface DdlIndexDefinition<Name extends string = string> {
   concurrently: boolean;
   ifNotExists: boolean;
   nullsNotDistinct: boolean;
+  inverted: boolean;
   method: string | undefined;
   ascending: boolean[] | undefined;
   storingColumns: string[] | undefined;
   withClause: StorageParameters | undefined;
   storageParameters: StorageParameters | undefined;
+  operatorClass: string | undefined;
   whereClause?:
     | ExpressionBuilderShape<ExpressionBase<DataTypeBoolean>>
     | undefined;
@@ -297,6 +303,7 @@ export interface DdlIndexDefinition<Name extends string = string> {
     | {
         expressions: SqlString[];
         unique: boolean;
+        inverted: boolean;
         method: string | undefined;
         ascending: boolean[] | undefined;
         storingColumns: string[] | undefined;
@@ -304,6 +311,7 @@ export interface DdlIndexDefinition<Name extends string = string> {
         withClause: StorageParameters | undefined;
         storageParameters: StorageParameters | undefined;
         whereClause?: SqlString | undefined;
+        operatorClass?: string | undefined;
       }
     | undefined;
 }

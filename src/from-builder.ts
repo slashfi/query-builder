@@ -1,45 +1,54 @@
+import { filterUndefined, type GenericAny } from '@/core-utils';
 import type {
   BaseDbDiscriminator,
   DataTypeBase,
   ExpressionBase,
   TableBase,
   TableColumnBase,
-} from './base';
-import { clauseForGroupByList } from './clauses/clause-for-group-by';
-import { clauseForOrderByList } from './clauses/clause-for-order-by';
-import { clauseFromExpression } from './clauses/clause-from-expression';
+} from './Base';
+import { clauseForGroupByList } from './clauses/ClauseForGroupBy';
+import { clauseForOrderByList } from './clauses/ClauseForOrderBy';
 import {
   type ClauseForSelectListItem,
   clauseForSelectListItem,
-} from './clauses/clausefor-select-list-item';
-import type { DataTypeBoolean } from './data-type';
+} from './clauses/ClauseForSelectListItem';
+import { clauseFromExpression } from './clauses/ClauseFromExpression';
 import type { DbConfig } from './db-helper';
-import type { EntityTarget, GenericEntityTarget } from './entity-target';
-import { expressionLeftRightBinary } from './expressions/expression-left-right-binary';
+import type { CompiledIndexConfigBase } from './ddl/index-config';
+import type { EntityTarget, GenericEntityTarget } from './EntityTarget';
+import { expressionLeftRightBinary } from './expressions/ExpressionLeftRightBinary';
 import {
   type ExpressionSelectColumns,
   expressionSelectColumns,
-} from './expressions/expression-select-columns';
-import { operatorBinaryLogical } from './operators/operator-binary-logical';
+} from './expressions/ExpressionSelectColumns';
+import {
+  extendTargetList,
+  type TargetJoinType,
+  type TargetList,
+} from './FromBuilder';
+import { operatorBinaryLogical } from './operators/OperatorBinaryLogical';
 import { paginateQueryResult } from './paginate';
-import type { ResultAssertBuilder, SelectQueryBuilder } from './query-builder';
+import type { ResultAssertBuilder, SelectQueryBuilder } from './QueryBuilder';
 import {
   type QueryBuilderParams,
   updateQueryBuilderParams,
-} from './query-builder-params';
-import { runQueryResult } from './query-result';
+} from './QueryBuilderParams';
+import { runQueryResult } from './QueryResult';
 import type { ColumnsSelectList } from './sql-query-builder/group-by-list-builder';
 import { qbSelectListToSelectClause } from './sql-query-builder/select-list-builder';
 import type { TableSelector } from './table-selector';
 import { createTableSelector } from './table-selector';
-import { writeSql } from './write-sql';
+import { writeSql } from './writeSql';
+
+function isIndexConfig<S extends BaseDbDiscriminator>(
+  target: GenericEntityTarget<S> | CompiledIndexConfigBase<S>
+): target is CompiledIndexConfigBase<S> {
+  return 'friendlyIndexName' in target;
+}
 
 export function createFrom<
   S extends BaseDbDiscriminator = BaseDbDiscriminator,
->(queryRunner: {
-  query: DbConfig<S, any>['query'];
-  discriminator: S;
-}) {
+>(queryRunner: { query: DbConfig<S, GenericAny>['query']; discriminator: S }) {
   function from<Target extends GenericEntityTarget<S>, Alias extends string>(
     _entity: Target,
     _alias: Alias,
@@ -107,9 +116,18 @@ export function createFrom<
   >;
 
   function from(
-    ...params: Parameters<typeof baseFrom>
+    entityOrConfig: GenericEntityTarget<S> | CompiledIndexConfigBase<S>,
+    alias?: string,
+    index?: string
   ): ReturnType<typeof baseFrom> {
-    return baseFrom(...params);
+    if (isIndexConfig<S>(entityOrConfig)) {
+      return baseFrom(
+        entityOrConfig,
+        alias ?? entityOrConfig.Table.defaultAlias,
+        entityOrConfig.index.name
+      );
+    }
+    return baseFrom(entityOrConfig, alias, index);
   }
 
   function baseFrom(
@@ -117,7 +135,7 @@ export function createFrom<
     alias?: string,
     index?: string,
     _context: QueryBuilderParams<S> | undefined = undefined
-  ): SelectQueryBuilder<any, S> {
+  ): SelectQueryBuilder<GenericAny, S> {
     const params = ((): QueryBuilderParams<S> => {
       if (!_context) {
         const entities: TargetList<S> = [
@@ -147,7 +165,10 @@ export function createFrom<
       return _context;
     })();
 
-    const builder: SelectQueryBuilder<any, S> = {
+    // We construct the error here to ensure that the stack trace is correct later on
+    const notFoundErrorWithCorrectStack = new Error('Not found');
+
+    const builder: SelectQueryBuilder<GenericAny, S> = {
       // biome-ignore lint/suspicious/noThenProperty: We want this to thenable
       then: (resolve, reject) => {
         const isSimpleSelection = (() => {
@@ -174,14 +195,14 @@ export function createFrom<
           .then((item) =>
             resolve?.(
               shouldReturnAliasDirectly
-                ? item.result.map(
+                ? (item.result.map(
                     (item) =>
                       item?.[params.entities[0].alias as keyof typeof item]
-                  )
-                : item.result
+                  ) as GenericAny[])
+                : (item.result as GenericAny[])
             )
           )
-          .catch(reject) as any;
+          .catch(reject) as GenericAny;
       },
       _debug: () => params,
       setQueryName: (queryName) => {
@@ -197,16 +218,20 @@ export function createFrom<
       asTable: (alias) =>
         asTarget({ _debug: () => params }, alias, queryRunner.discriminator),
       leftJoin: (nextTarget, options) => {
+        const customIndex = isIndexConfig<S>(nextTarget)
+          ? nextTarget.index.name
+          : (options.index ?? undefined);
         const alias = options.alias ?? nextTarget.Table.defaultAlias;
 
-        const tableSelector: TableSelector<any, S> = createTableSelector(
+        const tableSelector: TableSelector<GenericAny, S> = createTableSelector(
           extendTargetList(params.entities, {
             alias,
-            customIndex: options.index ?? undefined,
+            customIndex,
             table: nextTarget.Table,
             join: {
               type: 'left',
-              on: {} as ExpressionBase<any>,
+              on: {} as ExpressionBase<GenericAny>,
+              joinHint: options.joinHint,
             },
             isUsingAlias: true,
           })
@@ -215,10 +240,58 @@ export function createFrom<
         const join: TargetJoinType = {
           on: options.on(tableSelector)._expression,
           type: 'left',
+          joinHint: options.joinHint,
         };
 
         const newEntities = extendTargetList(params.entities ?? [], {
-          customIndex: options.index,
+          customIndex,
+          table: nextTarget.Table,
+          alias,
+          join,
+          isUsingAlias: true,
+        });
+
+        return baseFrom(baseTarget, alias, index, {
+          ...params,
+          entities: newEntities,
+          ...(!params.isExplicitSelect && {
+            select: [
+              ...params.select,
+              clauseForSelectListItem.create(
+                tableSelector[alias].$columns('*')._expression
+              ),
+            ],
+          }),
+        });
+      },
+      innerJoin: (nextTarget, options) => {
+        const customIndex = isIndexConfig<S>(nextTarget)
+          ? nextTarget.index.name
+          : (options.index ?? undefined);
+        const alias = options.alias ?? nextTarget.Table.defaultAlias;
+
+        const tableSelector: TableSelector<GenericAny, S> = createTableSelector(
+          extendTargetList(params.entities, {
+            alias,
+            customIndex,
+            table: nextTarget.Table,
+            join: {
+              type: 'inner',
+              on: {} as ExpressionBase<GenericAny>,
+              joinHint: options.joinHint,
+            },
+            isUsingAlias: true,
+          })
+        );
+
+        const join: TargetJoinType = {
+          on: options.on(tableSelector)._expression,
+          type: 'inner',
+          joinHint: options.joinHint,
+        };
+
+        const newEntities = extendTargetList(params.entities ?? [], {
+          customIndex,
           table: nextTarget.Table,
           alias,
           join,
@@ -239,16 +312,20 @@ export function createFrom<
         });
       },
       rightJoin: (nextTarget, options) => {
+        const customIndex = isIndexConfig<S>(nextTarget)
+          ? nextTarget.index.name
+          : (options.index ?? undefined);
         const alias = options.alias ?? nextTarget.Table.defaultAlias;
 
-        const tableSelector: TableSelector<any, S> = createTableSelector(
+        const tableSelector: TableSelector<GenericAny, S> = createTableSelector(
           extendTargetList(params.entities, {
             alias,
-            customIndex: options.index ?? undefined,
+            customIndex,
             table: nextTarget.Table,
             join: {
               type: 'right',
-              on: {} as ExpressionBase<any>,
+              on: {} as ExpressionBase<GenericAny>,
+              joinHint: options.joinHint,
             },
             isUsingAlias: true,
           })
@@ -257,10 +334,11 @@ export function createFrom<
         const join: TargetJoinType = {
           on: options.on(tableSelector)._expression,
           type: 'right',
+          joinHint: options.joinHint,
         };
 
         const newEntities = extendTargetList(params.entities ?? [], {
-          customIndex: options.index,
+          customIndex,
           table: nextTarget.Table,
           alias,
           join,
@@ -327,9 +405,24 @@ export function createFrom<
           })
         );
       },
+      offset: (value) => {
+        const newParams = updateQueryBuilderParams(params, {
+          offset: value,
+        });
+
+        return baseFrom(baseTarget, alias, index, newParams);
+      },
       limit: (value) => {
         const newParams = updateQueryBuilderParams(params, {
           limit: value,
+        });
+
+        return baseFrom(baseTarget, alias, index, newParams);
+      },
+      forUpdate: (opts) => {
+        const newParams = updateQueryBuilderParams(params, {
+          forUpdate: 'update' as const,
+          ...(opts?.skipLocked && { skipLocked: true }),
         });
 
         return baseFrom(baseTarget, alias, index, newParams);
@@ -371,14 +464,22 @@ export function createFrom<
           });
         }
 
-        const res = await runQueryResult(params, data);
+        const res = await runQueryResult(
+          params,
+          data,
+          notFoundErrorWithCorrectStack
+        );
 
-        return res as any;
+        return res as GenericAny;
       },
       async queryAndNarrow() {
-        const res = await runQueryResult(params, {
-          queryRunner,
-        });
+        const res = await runQueryResult(
+          params,
+          {
+            queryRunner,
+          },
+          notFoundErrorWithCorrectStack
+        );
 
         if (res.typeNarrowResult && !res.typeNarrowResult.passed) {
           throw new Error('Error while applying type narrowing');
@@ -438,7 +539,7 @@ export function createFrom<
 
 function createResultAsserterBuilder<S extends BaseDbDiscriminator>(
   params: QueryBuilderParams<S>
-): ResultAssertBuilder<any, S> {
+): ResultAssertBuilder<GenericAny, S> {
   return {
     _getAst() {
       return params.conditions;
@@ -519,7 +620,7 @@ export function asTarget<
     (acc, selectItem) => {
       const aliases = selectItem.alias
         ? [selectItem.alias]
-        : [...(selectItem.expression.inferredAliases ?? [])];
+        : filterUndefined([...(selectItem.expression.inferredAliases ?? [])]);
 
       if (!aliases.length) {
         return acc;
@@ -543,7 +644,7 @@ export function asTarget<
   return {
     Table: {
       class: 'table',
-      columnSchema: columns as any,
+      columnSchema: columns as GenericAny,
       subquery: params,
       tableName: alias,
       schema: 'public',
@@ -557,87 +658,3 @@ export function asTarget<
     },
   };
 }
-
-export type GetEntityFromTargetList<
-  List extends TargetList<S>,
-  Alias extends List[number]['alias'],
-  S extends BaseDbDiscriminator,
-> = Extract<List[number], { alias: Alias }>;
-
-export type TargetJoinType =
-  | {
-      type: 'left';
-      on: ExpressionBase<DataTypeBoolean>;
-    }
-  | {
-      type: 'right';
-      on: ExpressionBase<DataTypeBoolean>;
-    }
-  | {
-      /**
-       * Joins for inserts
-       */
-      type: 'insert';
-    };
-export interface TargetBase<S extends BaseDbDiscriminator> {
-  table: TableBase<S>;
-  alias: string;
-  customIndex?: string | undefined;
-  join?: TargetJoinType;
-  /**
-   * Whether the target uses the alias in its expressions
-   */
-  isUsingAlias: boolean;
-}
-
-export type TargetList<S extends BaseDbDiscriminator> =
-  readonly TargetBase<S>[];
-export function extendTargetList<
-  T extends TargetList<S>,
-  New extends TargetBase<S>,
-  S extends BaseDbDiscriminator,
->(curr: T, newValue: New): readonly [...T, New] {
-  return [...curr, newValue] as const;
-}
-
-export type LeftJoinTarget<
-  Target extends GenericEntityTarget<S>,
-  Alias extends string,
-  BooleanExpr extends ExpressionBase<DataTypeBoolean>,
-  S extends BaseDbDiscriminator,
-> = {
-  join: {
-    type: 'left';
-    on: BooleanExpr;
-  };
-  table: Target['Table'];
-  target: Target;
-  alias: Alias;
-  isUsingAlias: true;
-};
-
-export type RightJoinTarget<
-  Target extends GenericEntityTarget<S>,
-  Alias extends string,
-  BooleanExpr extends ExpressionBase<DataTypeBoolean>,
-  S extends BaseDbDiscriminator,
-> = {
-  join: {
-    type: 'right';
-    on: BooleanExpr;
-  };
-  table: Target['Table'];
-  target: Target;
-  alias: Alias;
-  isUsingAlias: true;
-};
-
-export type InferAlias<
-  Target extends GenericEntityTarget<S>,
-  Alias extends string,
-  S extends BaseDbDiscriminator,
-> = [Alias] extends [never]
-  ? Target extends GenericEntityTarget<S>
-    ? Target['Table']['defaultAlias']
-    : never
-  : Alias;

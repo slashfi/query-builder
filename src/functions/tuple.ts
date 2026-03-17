@@ -1,28 +1,29 @@
+import type { GenericAny } from '@/core-utils';
 import type {
   BaseDbDiscriminator,
   DataTypeBase,
   ExpressionBase,
-} from '../base';
-import { createExpressionBuilder } from '../expression-builder';
+} from '../Base';
 import type {
   ExpressionBuilder,
   ExpressionBuilderShape,
-} from '../expression-builder-type';
+} from '../ExpressionBuilder';
+import { createExpressionBuilder } from '../expression-builder';
 import {
   type ExpressionTuple,
   expressionTuple,
-} from '../expressions/expression-tuple';
+} from '../expressions/ExpressionTuple';
 
 export const tuple: Tuple = (...builders) => {
   const b = createExpressionBuilder(
     expressionTuple.create(builders.map((val) => val._expression))
   );
 
-  return b as any;
+  return b as GenericAny;
 };
 
 export type Tuple = <
-  const Builders extends ReadonlyArray<ExpressionBuilderShape<any>>,
+  const Builders extends ReadonlyArray<ExpressionBuilderShape<GenericAny>>,
   S extends BaseDbDiscriminator,
 >(
   ...builder: Builders

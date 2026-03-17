@@ -1,4 +1,4 @@
-import type { DataTypeBase, ExpressionBase } from '../base';
+import type { DataTypeBase, ExpressionBase } from '../Base';
 
 export interface ConstantBase<DataType extends DataTypeBase>
   extends ExpressionBase<DataType> {

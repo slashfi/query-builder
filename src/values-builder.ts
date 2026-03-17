@@ -1,20 +1,26 @@
-import type { AllOf, Expand, IsAny, Not, TypecheckError } from '@/core-utils';
+import type {
+  AllOf,
+  Expand,
+  GenericAny,
+  IsAny,
+  Not,
+  TypecheckError,
+} from '@/core-utils';
 import type {
   AstNode,
   BaseDbDiscriminator,
   DataTypeBase,
   TableColumnBase,
-} from './base';
-
-import { createAstNode } from './create-ast-node';
+} from './Base';
+import { createAstNode } from './createAstNode';
 import {
-  type DataTypeTabularColumns,
   type allDataTypes,
   createDataTypeTabularColumns,
-} from './data-type';
-import type { EntityTarget } from './entity-target';
+  type DataTypeTabularColumns,
+} from './DataType';
+import type { EntityTarget } from './EntityTarget';
 import type { BuildColumn, BuildTable } from './from-builder';
-import { serializeValueForDataType } from './insert-builder';
+import { serializeValueForDataType } from './InsertBuilder';
 import { type SqlString, sql } from './sql-string';
 
 export interface TableNodeForValues<DataType extends DataTypeTabularColumns>
@@ -76,7 +82,7 @@ export function createValuesBuilder<
   Params extends ValuesParams<S>,
   S extends BaseDbDiscriminator,
 >(params: Params): ValuesTableBuilder<Params, S> {
-  const self: ValuesTableBuilder<any, S> = {
+  const self: ValuesTableBuilder<GenericAny, S> = {
     _params() {
       return params;
     },
@@ -84,13 +90,13 @@ export function createValuesBuilder<
       return createValuesBuilder({
         ...params,
         dataTypeConstraints: dataTypes,
-      }) as ValuesTableBuilder<any, S>;
+      }) as ValuesTableBuilder<GenericAny, S>;
     },
     rows(...values) {
       return createValuesBuilder({
         ...params,
         values,
-      }) as ValuesTableBuilder<any, S>;
+      }) as ValuesTableBuilder<GenericAny, S>;
     },
     withAlias(alias) {
       if (!params.values) {
@@ -147,7 +153,7 @@ export interface ValuesTableBuilder<
     : <
         T extends {
           [Key in keyof Params['dataTypeConstraints']]: DataTypeBase extends Params['dataTypeConstraints'][Key]
-            ? any
+            ? GenericAny
             : Params['dataTypeConstraints'][Key]['narrowedType'];
         },
       >(
@@ -213,7 +219,7 @@ export interface ValuesTableBuilder<
 
 interface ValuesParams<S extends BaseDbDiscriminator> {
   dataTypeConstraints: { [Key in string]: DataTypeBase };
-  values: any[] | undefined;
+  values: GenericAny[] | undefined;
   discriminator: S;
 }
 

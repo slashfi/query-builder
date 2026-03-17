@@ -1,4 +1,4 @@
-import { getSqlForColumnExpressionForDataType } from '../../migrations/column-expression-for-data-type';
+import { getSqlForColumnExpressionForDataType } from '../../migrations/columnExpressionForDataType';
 import type { SqlString } from '../../sql-string';
 import { sql } from '../../sql-string';
 import type {
@@ -47,12 +47,18 @@ function serializeColumnConstraint(constraint: ColumnConstraint): SqlString {
 }
 
 function serializeColumnDefinition(column: ColumnDefinition): SqlString {
-  const parts = [
-    sql.column({ name: column.name }),
-    getSqlForColumnExpressionForDataType(column.dataType, {
-      defaultValue: column.default,
-    }),
-  ];
+  const parts = [sql.column({ name: column.name })];
+
+  if (column.computedExpression) {
+    // For computed columns, use the computed expression instead of data type
+    parts.push(sql`AS (${column.computedExpression}) STORED`);
+  } else {
+    parts.push(
+      getSqlForColumnExpressionForDataType(column.dataType, {
+        defaultValue: column.default,
+      })
+    );
+  }
 
   if (column.constraints?.length) {
     parts.push(...column.constraints.map(serializeColumnConstraint));

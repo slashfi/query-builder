@@ -1,23 +1,24 @@
+import type { GenericAny } from '@/core-utils';
+import type { BaseDbDiscriminator, ExpressionBase } from '../Base';
+import {
+  type ClauseFromExpression,
+  clauseFromExpression,
+} from '../clauses/ClauseFromExpression';
+import type { DataTypeBoolean } from '../DataType';
+import type { ExpressionBuilderShape } from '../ExpressionBuilder';
+import {
+  type ExpressionLeftRightBinary,
+  expressionLeftRightBinary,
+} from '../expressions/ExpressionLeftRightBinary';
+import type { SuppressLongWhereClause } from '../global';
+import type { OperatorBinaryLogical } from '../operators/OperatorBinaryLogical';
 import {
   type QueryBuilderParams,
   type SetQbParams,
   updateQueryBuilderParams,
-} from '../query-builder-params';
-import type { BaseDbDiscriminator, ExpressionBase } from '../base';
-import {
-  type ClauseFromExpression,
-  clauseFromExpression,
-} from '../clauses/clause-from-expression';
-import type { DataTypeBoolean } from '../data-type';
-import type { ExpressionBuilderShape } from '../expression-builder-type';
-import {
-  type ExpressionLeftRightBinary,
-  expressionLeftRightBinary,
-} from '../expressions/expression-left-right-binary';
-import type { SuppressLongWhereClause } from '../global';
-import type { OperatorBinaryLogical } from '../operators/operator-binary-logical';
+} from '../QueryBuilderParams';
 import type { AssertSqlQueryBuilder } from '../query-builder-asserter';
-import { createSqlQueryBuilder } from './sql-query-builder';
+import { createSqlQueryBuilder } from './SqlQueryBuilder';
 
 export function createSqlQueryBuilderLogicalFilterClause<
   Op extends OperatorBinaryLogical<'AND'> | OperatorBinaryLogical<'OR'>,
@@ -25,7 +26,7 @@ export function createSqlQueryBuilderLogicalFilterClause<
 >(
   params: QueryBuilderParams<S>,
   op: Op
-): SqlQueryBuilderLogicalFilterClause<any, Op, S> {
+): SqlQueryBuilderLogicalFilterClause<GenericAny, Op, S> {
   return (booleanExprBuilder) => {
     return createSqlQueryBuilder(
       updateQueryBuilderParams(params, {

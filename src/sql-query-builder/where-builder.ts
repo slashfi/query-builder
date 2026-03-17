@@ -1,22 +1,23 @@
+import type { GenericAny } from '@/core-utils';
+import type { BaseDbDiscriminator, ExpressionBase } from '../Base';
+import {
+  type ClauseFromExpression,
+  clauseFromExpression,
+} from '../clauses/ClauseFromExpression';
+import type { DataTypeBoolean } from '../DataType';
+import type { ExpressionBuilderShape } from '../ExpressionBuilder';
+import type { SuppressLongWhereClause } from '../global';
 import {
   type QueryBuilderParams,
   type SetQbParams,
   updateQueryBuilderParams,
-} from '../query-builder-params';
-import type { BaseDbDiscriminator, ExpressionBase } from '../base';
-import {
-  type ClauseFromExpression,
-  clauseFromExpression,
-} from '../clauses/clause-from-expression';
-import type { DataTypeBoolean } from '../data-type';
-import type { ExpressionBuilderShape } from '../expression-builder-type';
-import type { SuppressLongWhereClause } from '../global';
+} from '../QueryBuilderParams';
 import type { AssertSqlQueryBuilder } from '../query-builder-asserter';
-import { createSqlQueryBuilder } from './sql-query-builder';
+import { createSqlQueryBuilder } from './SqlQueryBuilder';
 
 export function createSqlQueryBuilderWhere<S extends BaseDbDiscriminator>(
   params: QueryBuilderParams<S>
-): SqlQueryBuilderWhere<any, S> {
+): SqlQueryBuilderWhere<GenericAny, S> {
   return (filterClauseBuilder) => {
     return createSqlQueryBuilder(
       updateQueryBuilderParams(params, {

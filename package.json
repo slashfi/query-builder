@@ -1,49 +1,79 @@
 {
   "name": "@slashfi/query-builder",
-  "version": "0.0.1",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "version": "0.0.2",
   "license": "ISC",
+  "main": "lib/index.js",
+  "module": "esm/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./esm/index.js",
+      "require": "./lib/index.js",
+      "types": "./lib/index.d.ts"
+    },
+    "./lib/functions": {
+      "import": "./esm/functions/index.js",
+      "require": "./lib/functions/index.js",
+      "types": "./lib/functions/index.d.ts"
+    },
+    "./lib/sql-string": {
+      "import": "./esm/sql-string/index.js",
+      "require": "./lib/sql-string/index.js",
+      "types": "./lib/sql-string/index.d.ts"
+    },
+    "./lib/*.js": {
+      "import": "./esm/*.js",
+      "require": "./lib/*.js",
+      "types": "./lib/*.d.ts"
+    },
+    "./lib/*": {
+      "import": "./esm/*.js",
+      "require": "./lib/*.js",
+      "types": "./lib/*.d.ts"
+    }
+  },
   "bin": {
     "qb": "./bin/qb"
   },
   "scripts": {
-    "build": "yarn build:swc",
-    "build:swc": "bun src/tooling/gen-swc-config.ts swc.config.js && swc src --out-dir lib",
-    "build:swc:dev": "yarn build:swc -w",
-    "build:tsc": "tsc",
+    "build": "yarn build:cjs && yarn build:esm && yarn build:tsc",
+    "build:cjs": "swc src --out-dir lib",
+    "build:esm": "swc src --out-dir esm -C module.type=es6 && echo '{\"type\":\"module\"}' > esm/package.json",
     "build:dev": "concurrently \"npm run build:swc:dev\" \"npm run build:tsc -b -w\"",
-    "clean": "slash clean-rush-build-cache",
-    "lint": "biome check src",
-    "lint:fix": "biome check src --write",
-    "lint:ci": "biome ci src && yarn lint",
-    "format": "biome format src",
-    "format:fix": "biome format src --write",
-    "typecheck": "yarn build:tsc",
+    "build:swc": "yarn build:cjs",
+    "build:swc:dev": "yarn build:cjs -w",
+    "build:tsc": "tsc",
+    "clean": "rm -rf lib esm",
+    "format": "biome format .",
+    "format:fix": "biome format . --write",
+    "lint": "biome check .",
+    "lint:ci": "biome ci . && yarn lint",
+    "lint:fix": "biome check . --write",
     "test": "vitest run",
     "test:db:setup": "cd examples && docker-compose up -d",
-    "test:db:teardown": "cd examples && docker-compose down"
+    "test:db:teardown": "cd examples && docker-compose down",
+    "typecheck": "yarn build:tsc"
+  },
+  "dependencies": {
+    "@sinclair/typebox": "~0.34.0",
+    "@swc-node/register": "~1.9.2",
+    "chalk": "^4.1.2",
+    "cmd-ts": "~0.13.0",
+    "glob": "~8.0.3",
+    "pg": "^8.11.3",
+    "typescript": "5.9.2"
   },
   "devDependencies": {
-    "typescript": "~5.7.3",
-    "@biomejs/biome": "~1.9.4",
-    "eslint": "~8.36.0",
-    "@swc/cli": "^0.1.65",
+    "@biomejs/biome": "2.2.5",
+    "@swc/cli": "^0.1.62",
     "@swc/core": "~1.4.17",
-    "@typescript-eslint/parser": "~5.60.1",
-    "@types/node": "~18.19.100",
-    "vitest": "~1.4.0",
-    "vite-tsconfig-paths": "~4.3.2",
-    "vite": "^5.4.19",
-    "@sinclair/typebox": "~0.34.33",
-    "glob": "~8.0.3",
-    "@types/glob": "~7.2.0",
-    "cmd-ts": "~0.13.0",
-    "@swc-node/register": "~1.9.2",
-    "zx": "~7.2.3",
-    "chalk": "^4.1.2",
     "@types/chalk": "~2.2.4",
-    "pg": "^8.15.6",
-    "@types/pg": "~8.11.15"
+    "@types/glob": "~7.2.0",
+    "@types/node": "~22.13.14",
+    "@types/pg": "~8.11.0",
+    "@typescript-eslint/parser": "~5.60.0",
+    "vite": "^5.2.0",
+    "vite-tsconfig-paths": "~4.3.1",
+    "vitest": "^3.2.4"
   }
 }

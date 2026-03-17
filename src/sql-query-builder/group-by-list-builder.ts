@@ -1,25 +1,25 @@
-import type { IsAny } from '@/core-utils';
+import type { GenericAny, IsAny } from '@/core-utils';
+import type { BaseDbDiscriminator, ExpressionBase } from '../Base';
+import {
+  type ClauseForGroupByList,
+  clauseForGroupByList,
+} from '../clauses/ClauseForGroupBy';
+import type { ClauseForSelectListItem } from '../clauses/ClauseForSelectListItem';
+import type { ExpressionBuilder } from '../ExpressionBuilder';
+import type { ExpressionColumn } from '../expressions/ExpressionColumn';
 import {
   type QueryBuilderParams,
   type SelectionArray,
   type SetQbParams,
   updateQueryBuilderParams,
-} from '../query-builder-params';
-import type { BaseDbDiscriminator, ExpressionBase } from '../base';
-import {
-  type ClauseForGroupByList,
-  clauseForGroupByList,
-} from '../clauses/clause-for-group-by';
-import type { ClauseForSelectListItem } from '../clauses/clausefor-select-list-item';
-import type { ExpressionBuilder } from '../expression-builder-type';
-import type { ExpressionColumn } from '../expressions/expression-column';
+} from '../QueryBuilderParams';
 import type { AssertSqlQueryBuilder } from '../query-builder-asserter';
-import { createSqlQueryBuilder } from './sql-query-builder';
+import { createSqlQueryBuilder } from './SqlQueryBuilder';
 
 export const createSqlQueryBuilderGroupBy =
   <S extends BaseDbDiscriminator>(
     params: QueryBuilderParams<S>
-  ): SqlQueryBuilderGroupBy<any, S> =>
+  ): SqlQueryBuilderGroupBy<GenericAny, S> =>
   (...values) => {
     const arr = [...values].map((expression) => {
       if (typeof expression === 'string') {
@@ -66,7 +66,7 @@ export type SqlQueryBuilderGroupBy<
 type AliasesInSelectList<Arr extends SelectionArray> = IsAny<Arr> extends true
   ? string[]
   : Arr extends readonly [infer U, ...infer J extends SelectionArray]
-    ? U extends ClauseForSelectListItem<ExpressionBase<any>, undefined>
+    ? U extends ClauseForSelectListItem<ExpressionBase<GenericAny>, undefined>
       ? [
           NonNullable<U['expression']['inferredAliases']>[number],
           ...AliasesInSelectList<J>,
@@ -75,7 +75,7 @@ type AliasesInSelectList<Arr extends SelectionArray> = IsAny<Arr> extends true
          * should only be able to reference items in the SELECT list that don't have aliases
          * if they are vanilla column expression
          */
-        U extends ClauseForSelectListItem<ExpressionBase<any>, string>
+        U extends ClauseForSelectListItem<ExpressionBase<GenericAny>, string>
         ? [U['alias'], ...AliasesInSelectList<J>]
         : []
     : [];
@@ -84,7 +84,7 @@ export type ColumnsSelectList<Arr extends SelectionArray> =
   IsAny<Arr> extends true
     ? {}
     : Arr extends readonly [infer U, ...infer J extends SelectionArray]
-      ? U extends ClauseForSelectListItem<ExpressionBase<any>, undefined>
+      ? U extends ClauseForSelectListItem<ExpressionBase<GenericAny>, undefined>
         ? {
             [Key in NonNullable<
               U['expression']['inferredAliases']
@@ -94,7 +94,7 @@ export type ColumnsSelectList<Arr extends SelectionArray> =
            * should only be able to reference items in the SELECT list that don't have aliases
            * if they are vanilla column expression
            */
-          U extends ClauseForSelectListItem<ExpressionBase<any>, string>
+          U extends ClauseForSelectListItem<ExpressionBase<GenericAny>, string>
           ? { [Key in U['alias']]: U['dataType'] } & ColumnsSelectList<J>
           : {}
       : {};
@@ -104,7 +104,7 @@ export type GroupByItemParameterItem<
   S extends BaseDbDiscriminator,
 > =
   | AliasesInSelectList<Params['select']>[number]
-  | ExpressionBuilder<ExpressionColumn<any, any, S>, S>;
+  | ExpressionBuilder<ExpressionColumn<GenericAny, GenericAny, S>, S>;
 
 export type ClausesToGroupBy<
   Params extends QueryBuilderParams<S>,

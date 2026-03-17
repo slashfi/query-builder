@@ -1,24 +1,34 @@
+import type { GenericAny } from '@/core-utils';
 import type {
   BaseDbDiscriminator,
   ExpressionBase,
   TableBase,
-} from '../../base';
-import type { DataTypeBoolean } from '../../data-type';
+} from '../../Base';
+import type { OrderByListItem } from '../../clauses/ClauseForOrderBy';
+import type { DataTypeBoolean } from '../../DataType';
+import type { ExpressionBuilderShape } from '../../ExpressionBuilder';
 import { isExpressionBuilderShape } from '../../expression-builder';
-import type { ExpressionBuilderShape } from '../../expression-builder-type';
-import type { ExpressionColumn } from '../../expressions/expression-column';
+import type { ExpressionColumn } from '../../expressions/ExpressionColumn';
 import type { SqlString } from '../../sql-string';
 import type {
   IndexDefinition,
   IndexMethod,
   IndexOptions,
+  OperatorClass,
 } from './index-definition';
+
+export type IndexExpressionWithDirection =
+  | {
+      expression: ExpressionBase<GenericAny> | SqlString;
+      direction?: undefined;
+    }
+  | { expression: ExpressionBase<GenericAny>; direction: 'asc' | 'desc' };
 
 export interface IndexState<
   Table extends TableBase<S>,
   S extends BaseDbDiscriminator,
 > {
-  readonly expressions: Array<ExpressionBase<any> | SqlString>;
+  readonly expressions: Array<IndexExpressionWithDirection>;
   readonly options: IndexOptions;
   readonly name?: string | undefined;
   readonly storingColumns?:
@@ -44,12 +54,32 @@ export function createIndexBuilder<
   Table extends TableBase<S>,
   S extends BaseDbDiscriminator,
 >(
-  expressions: Array<ExpressionBuilderShape<ExpressionBase<any>> | SqlString>
+  expressions: Array<
+    | ExpressionBuilderShape<ExpressionBase<GenericAny>>
+    | SqlString
+    | OrderByListItem
+  >
 ): IndexDefinition<Table, S> {
   const initialState: IndexState<Table, S> = {
-    expressions: expressions.map((expr) =>
-      isExpressionBuilderShape(expr) ? expr._expression : expr
-    ),
+    expressions: expressions.map((expr): IndexExpressionWithDirection => {
+      // Check if it's an OrderByListItem (has both expression and direction)
+      if (
+        expr &&
+        typeof expr === 'object' &&
+        'expression' in expr &&
+        'direction' in expr
+      ) {
+        return {
+          expression: expr.expression,
+          direction: expr.direction,
+        };
+      }
+      // Otherwise, it's either an ExpressionBuilderShape or SqlString
+      return {
+        expression: isExpressionBuilderShape(expr) ? expr._expression : expr,
+        direction: undefined,
+      };
+    }),
     options: {},
   };
 
@@ -145,6 +175,20 @@ export function createIndexBuilder<
         return createBuilder({
           ...state,
           partition: { by: expr },
+        });
+      },
+
+      operatorClass(opclass: OperatorClass) {
+        return createBuilder({
+          ...state,
+          options: { ...state.options, operatorClass: opclass },
+        });
+      },
+
+      ginTrgmOps() {
+        return createBuilder({
+          ...state,
+          options: { ...state.options, operatorClass: 'gin_trgm_ops' },
         });
       },
     };

@@ -1,5 +1,10 @@
-import type { BaseDbDiscriminator, TableBase } from '../base';
-import type { EntityTarget } from '../entity-target';
+import type { GenericAny } from '@/core-utils';
+import type { BaseDbDiscriminator, TableBase } from '../Base';
+import {
+  type OperatorClass,
+  operatorClassPatterns,
+} from '../ddl/index-builder/index-definition';
+import type { EntityTarget } from '../EntityTarget';
 import { type SqlString, sql } from '../sql-string';
 import {
   shouldIntrospectColumns,
@@ -24,7 +29,8 @@ export const queries = {
       is_nullable = 'YES' as nullable,
       column_default as "defaultValue",
       ordinal_position,
-      is_hidden = 'YES' as hidden
+      is_hidden = 'YES' as hidden,
+      generation_expression as "computedExpression"
     FROM information_schema.columns
     WHERE table_schema = ${sql.p(schemaName)}
     ORDER BY table_name, ordinal_position
@@ -45,6 +51,7 @@ export interface FastColumn {
   defaultValue: string | null;
   ordinalPosition: number;
   hidden: boolean;
+  computedExpression: string | null; // Generated column expression from database
 }
 
 export interface FastIndexPart {
@@ -52,6 +59,7 @@ export interface FastIndexPart {
   direction: 'ASC' | 'DESC';
   position: number;
   storing: boolean;
+  operatorClass?: string | undefined;
 }
 
 export interface FastIndex {
@@ -60,6 +68,7 @@ export interface FastIndex {
   parts: FastIndexPart[];
   includeColumns: string[];
   partial?: string; // WHERE condition for partial indexes
+  operatorClass?: string | undefined; // Operator class for trigram indexes (e.g., gin_trgm_ops)
 }
 
 export interface FastTable {
@@ -118,18 +127,40 @@ export function parseCreateTableStatement(createStatement: string): {
       const exprMatch = trimmedLine.match(/\((.*?)\)/);
       if (!exprMatch) continue;
 
+      let indexOperatorClass: OperatorClass | undefined;
+
       const parts = exprMatch[1].split(',').map((part, position) => {
-        const trimmed = part.trim();
+        let trimmed = part.trim();
+
+        // Parse in reverse order of generation: "col opclass DESC"
         const direction = trimmed.endsWith('DESC')
           ? ('DESC' as const)
           : ('ASC' as const);
-        const expression = trimmed.replace(/ (ASC|DESC)$/i, '').trim();
+        trimmed = trimmed.replace(/ (ASC|DESC)$/i, '').trim();
+
+        const partOperatorClass = (() => {
+          for (const opClass of operatorClassPatterns) {
+            if (trimmed.endsWith(` ${opClass}`)) {
+              indexOperatorClass = opClass;
+              trimmed = trimmed.slice(0, -opClass.length - 1).trim();
+              return opClass;
+            }
+          }
+          return undefined;
+        })();
+
+        // Strip quotes from column names for consistent comparison
+        // CockroachDB keeps quotes for camelCase columns but drops them for lowercase
+        if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+          trimmed = trimmed.slice(1, -1);
+        }
 
         return {
-          expression,
+          expression: trimmed,
           direction,
           position,
           storing: false,
+          operatorClass: partOperatorClass,
         };
       });
 
@@ -149,6 +180,7 @@ export function parseCreateTableStatement(createStatement: string): {
         unique: isUnique,
         parts,
         includeColumns,
+        operatorClass: indexOperatorClass,
       };
 
       // Only add partial if it exists
@@ -165,8 +197,8 @@ export function parseCreateTableStatement(createStatement: string): {
 
 // Process the results from parallel queries
 export const processSchemaResults = (
-  tableRows: any[],
-  columnRows: any[] | null,
+  tableRows: GenericAny[],
+  columnRows: GenericAny[] | null,
   createTableResults: Map<string, string>
 ): FastSchema => {
   // Group columns by table
@@ -195,7 +227,7 @@ export const processSchemaResults = (
 // Main introspection function
 export const introspectSchema = async <S extends BaseDbDiscriminator>(
   schemaName: string,
-  executeQuery: (query: SqlString) => Promise<any[]>,
+  executeQuery: (query: SqlString) => Promise<GenericAny[]>,
   schemas: EntityTarget<TableBase<S>, S>[]
 ): Promise<FastSchema> => {
   // Check what needs to be introspected
@@ -204,7 +236,7 @@ export const introspectSchema = async <S extends BaseDbDiscriminator>(
   );
 
   // Build list of queries to execute
-  const queryPromises: Promise<any[]>[] = [
+  const queryPromises: Promise<GenericAny[]>[] = [
     executeQuery(queries.tables(schemaName)),
   ];
 
@@ -239,6 +271,7 @@ export const introspectSchema = async <S extends BaseDbDiscriminator>(
           createTableResults.set(tableName, result[0].create_statement);
         }
       } catch (error) {
+        // biome-ignore lint/suspicious/noConsole: override
         console.warn(
           `Failed to get CREATE TABLE statement for ${tableName}:`,
           error

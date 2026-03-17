@@ -1,4 +1,6 @@
 lib
 node_modules
-.DS_Store
-.swcrc
+rush-logs
+
+# ESM build output
+esm/

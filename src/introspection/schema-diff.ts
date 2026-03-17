@@ -4,21 +4,22 @@ import type {
   DataTypeBase,
   TableBase,
   TableColumnBase,
-} from '../base';
+} from '../Base';
 import {
-  type DataTypeArray,
   createDataTypeArray,
   createDataTypeBoolean,
+  createDataTypeDecimal,
   createDataTypeFloat,
   createDataTypeInteger,
   createDataTypeJson,
   createDataTypeTimestamp,
   createDataTypeVarchar,
+  type DataTypeArray,
   getNonNullableDataType,
   isDataTypeNullable,
-} from '../data-type';
+} from '../DataType';
 import type { DdlIndexDefinition } from '../ddl/table';
-import type { EntityTarget } from '../entity-target';
+import type { EntityTarget } from '../EntityTarget';
 import { type SqlString, sql } from '../sql-string';
 import { injectParameters } from '../sql-string/helpers';
 import type { TableIntrospectOptions } from '../table-from-schema-builder';
@@ -66,6 +67,7 @@ export function convertDbTypeToDataType(
       case 'double precision':
         return createDataTypeFloat({ isNullable: options.isNullable });
 
+      case 'date':
       case 'timestamp':
       case 'timestamp without time zone':
         return createDataTypeTimestamp({ isNullable: options.isNullable });
@@ -84,6 +86,10 @@ export function convertDbTypeToDataType(
           { isNullable: options.isNullable }
         );
       }
+
+      case 'numeric':
+      case 'decimal':
+        return createDataTypeDecimal({ isNullable: options.isNullable });
 
       default:
         throw new Error(`Unknown data type: ${normalizedType}`);
@@ -127,6 +133,12 @@ export interface ColumnDiff {
         db?: SqlString | undefined;
       }
     | undefined;
+  computedExpression?:
+    | {
+        schema?: SqlString | undefined;
+        db?: SqlString | undefined;
+      }
+    | undefined;
 }
 
 export interface IndexDiff {
@@ -135,6 +147,8 @@ export interface IndexDiff {
   dbExpressions?: string[];
   schemaUnique?: boolean;
   dbUnique?: boolean;
+  schemaOperatorClass?: string | undefined;
+  dbOperatorClass?: string | undefined;
 }
 
 export interface TableDiff {
@@ -253,6 +267,68 @@ function compareColumns(
         }
       : undefined;
 
+  // Compare computed expressions
+  const computedExpressionDifference = (() => {
+    const schemaHasComputed = schemaColumn.computedExpression !== undefined;
+    const dbHasComputed =
+      dbColumn.computedExpression !== null &&
+      dbColumn.computedExpression !== undefined;
+
+    // If neither has computed expression, no difference
+    if (!schemaHasComputed && !dbHasComputed) {
+      return undefined;
+    }
+
+    // If only one side has computed expression, there's a difference
+    if (schemaHasComputed !== dbHasComputed) {
+      return {
+        computedExpression: {
+          schema: schemaColumn.computedExpression,
+          db: dbColumn.computedExpression
+            ? sql([dbColumn.computedExpression])
+            : undefined,
+        },
+      };
+    }
+
+    // Both have computed expressions - normalize and compare
+    if (schemaHasComputed && dbHasComputed) {
+      const schemaQuery = schemaColumn.computedExpression?.getQuery();
+      let dbQuery = dbColumn.computedExpression;
+
+      if (!schemaQuery || !dbQuery) {
+        throw new Error(
+          'Impossible state: schema or db computed expression is undefined'
+        );
+      }
+
+      // Normalize database expression by removing outer parentheses and extra whitespace
+      dbQuery = dbQuery.trim();
+      if (dbQuery.startsWith('(') && dbQuery.endsWith(')')) {
+        dbQuery = dbQuery.slice(1, -1).trim();
+      }
+
+      // Normalize whitespace for comparison
+      const normalizeWhitespace = (str: string) =>
+        str.replace(/\s+/g, ' ').trim();
+      const normalizedSchema = normalizeWhitespace(schemaQuery);
+      const normalizedDb = normalizeWhitespace(dbQuery);
+
+      if (normalizedSchema !== normalizedDb) {
+        return {
+          computedExpression: {
+            schema: schemaColumn.computedExpression,
+            db: dbColumn.computedExpression
+              ? sql([dbColumn.computedExpression])
+              : undefined,
+          },
+        };
+      }
+    }
+
+    return undefined;
+  })();
+
   // Add baseType difference for array types
   const baseTypeDifference =
     (isSchemaArray || isDbArray) && schemaBaseType !== dbBaseType
@@ -264,12 +340,18 @@ function compareColumns(
         }
       : undefined;
 
-  if (typeDifferences || defaultDifference || baseTypeDifference) {
+  if (
+    typeDifferences ||
+    defaultDifference ||
+    baseTypeDifference ||
+    computedExpressionDifference
+  ) {
     return {
       name: schemaColumn.columnName,
       ...typeDifferences,
       ...defaultDifference,
       ...baseTypeDifference,
+      ...computedExpressionDifference,
     };
   }
 }
@@ -300,9 +382,10 @@ function getIndexExpressions(index: DdlIndexDefinition): string[] {
   return index.expressions
     .map((expr) => {
       const res = expr.getQuery();
-      // below is a cockroach specific hack to handle index expressions that are just column names that are all lowercase
-      // SHOW CREATE TABLE in cockroach drops the quotes around column names that are all lowercase AND if it is not a keyword (timestamp)
-      // For now, we can continue updating the keywords list as needed.
+      // Normalize index expressions for comparison:
+      // CockroachDB's SHOW CREATE TABLE drops quotes around column names that are all lowercase
+      // and don't conflict with keywords. But for camelCase columns like "tenantId", it keeps quotes.
+      // To compare consistently, we strip quotes from simple column expressions.
 
       const trimmed = res.trim();
       const isSingleColumnExpression = trimmed.split(' ').length === 1;
@@ -312,16 +395,10 @@ function getIndexExpressions(index: DdlIndexDefinition): string[] {
         trimmed.startsWith('"') &&
         trimmed.endsWith('"')
       ) {
-        const columnPart = trimmed.slice(1, -1);
-
-        const keywords = ['timestamp', 'interval', 'time'];
-
-        if (
-          columnPart.toLowerCase() === columnPart &&
-          !keywords.includes(columnPart)
-        ) {
-          return columnPart;
-        }
+        // Strip quotes from column names - both lowercase and camelCase
+        // The comparison will work because parseCreateTableStatement also extracts
+        // the raw column name (with or without quotes depending on CRDB output)
+        return trimmed.slice(1, -1);
       }
 
       return res;
@@ -370,7 +447,6 @@ function compareIndexes(
     : dbIndex.parts.map((part: { expression: string }) => part.expression);
 
   if (JSON.stringify(schemaExpressions) !== JSON.stringify(dbExpressions)) {
-    console.log('DIFF', schemaExpressions, dbExpressions);
     if (!options.indexModifications?.allowModifications) {
       throw new Error(
         `Index "${schemaIndex.name}" has been modified. The expressions have changed from [${dbExpressions.join(
@@ -395,6 +471,21 @@ function compareIndexes(
     }
     differences.schemaUnique = schemaUnique;
     differences.dbUnique = dbUnique;
+    hasDiff = true;
+  }
+
+  // Compare operator classes
+  const schemaOperatorClass = schemaIndex.operatorClass;
+  const dbOperatorClass =
+    createTableIndex?.operatorClass ?? dbIndex.operatorClass;
+  if (schemaOperatorClass !== dbOperatorClass) {
+    if (!options.indexModifications?.allowModifications) {
+      throw new Error(
+        `Index "${schemaIndex.name}" has been modified. The operator class has changed from ${dbOperatorClass ?? 'none'} to ${schemaOperatorClass ?? 'none'}. Please create a new index with the desired operator class and drop the old one.`
+      );
+    }
+    differences.schemaOperatorClass = schemaOperatorClass;
+    differences.dbOperatorClass = dbOperatorClass;
     hasDiff = true;
   }
 
@@ -497,6 +588,11 @@ function compareTable<S extends BaseDbDiscriminator>(
         default: {
           schema: schemaCol.default,
         },
+        ...(schemaCol.computedExpression && {
+          computedExpression: {
+            schema: schemaCol.computedExpression,
+          },
+        }),
         ...(getNonNullableDataType(schemaCol.dataType).type.toLowerCase() ===
           'array' && {
           baseType: {

@@ -1,21 +1,22 @@
+import type { GenericAny } from '@/core-utils';
+import type { BaseDbDiscriminator } from '../Base';
+import {
+  type ClauseForSelectListItem,
+  clauseForSelectListItem,
+} from '../clauses/ClauseForSelectListItem';
+import type { ExpressionBuilder } from '../ExpressionBuilder';
+import { expressionColumn } from '../expressions/ExpressionColumn';
 import {
   type QueryBuilderParams,
   type SetQbParams,
   updateQueryBuilderParams,
-} from '../query-builder-params';
-import type { BaseDbDiscriminator } from '../base';
-import {
-  type ClauseForSelectListItem,
-  clauseForSelectListItem,
-} from '../clauses/clausefor-select-list-item';
-import type { ExpressionBuilder } from '../expression-builder-type';
-import { expressionColumn } from '../expressions/expression-column';
+} from '../QueryBuilderParams';
 import type { AssertSqlQueryBuilder } from '../query-builder-asserter';
-import { createSqlQueryBuilder } from './sql-query-builder';
+import { createSqlQueryBuilder } from './SqlQueryBuilder';
 
 export const createSqlQueryBuilderSelect = <S extends BaseDbDiscriminator>(
   params: QueryBuilderParams<S>
-): SqlQueryBuilderSelect<any, S> => {
+): SqlQueryBuilderSelect<GenericAny, S> => {
   return (...selectionArray) => {
     return createSqlQueryBuilder(
       updateQueryBuilderParams(params, {
@@ -71,15 +72,15 @@ export type QbSelectListToSelectClause<
   S extends BaseDbDiscriminator,
 > = {
   [Key in keyof Values]: Values[Key] extends readonly [
-    expression: ExpressionBuilder<any, S>,
+    expression: ExpressionBuilder<GenericAny, S>,
     alias: string,
   ]
     ? ClauseForSelectListItem<Values[Key][0]['_expression'], Values[Key][1]>
-    : Values[Key] extends ExpressionBuilder<any, S>
+    : Values[Key] extends ExpressionBuilder<GenericAny, S>
       ? ClauseForSelectListItem<Values[Key]['_expression'], undefined>
       : never;
 };
 
 export type QbSelectListItem<S extends BaseDbDiscriminator> =
-  | readonly [expression: ExpressionBuilder<any, S>, alias: string]
-  | ExpressionBuilder<any, S>;
+  | readonly [expression: ExpressionBuilder<GenericAny, S>, alias: string]
+  | ExpressionBuilder<GenericAny, S>;

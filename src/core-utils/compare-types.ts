@@ -1,9 +1,9 @@
-import type { TypecheckError } from './typecheck-error';
+import type { GenericAny, TypecheckError } from './index';
 
 export function compareTypes<
   T extends {
-    a: any;
-    b: any;
+    a: GenericAny;
+    b: GenericAny;
   },
 >() {
   return {

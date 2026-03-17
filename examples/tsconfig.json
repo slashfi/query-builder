@@ -6,16 +6,11 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "paths": {
-      "@slashfi/query-builder": [
-        "src"
-      ],
-      "@slashfi/query-builder/*": [
-        "src/*"
-      ]
+      "@slashfi/query-builder": ["src"],
+      "@slashfi/query-builder/*": ["src/*"],
+      "@/core-utils": ["src/core-utils"],
+      "@/core-utils/*": ["src/core-utils/*"]
     }
   },
-  "include": [
-    "../src",
-    "./**/*.ts"
-  ]
+  "include": ["../src", "./**/*.ts"]
 }

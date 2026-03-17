@@ -1,14 +1,14 @@
+import type { GenericAny } from '@/core-utils';
 import ts from 'typescript';
 import { getAstNodeRepository } from '../../ast-node-repository';
 import type {
   BaseDbDiscriminator,
   ExpressionBase,
   TableBase,
-} from '../../base';
-import type { EntityTarget } from '../../entity-target';
+} from '../../Base';
+import type { EntityTarget } from '../../EntityTarget';
+import type { ExpressionBuilderShape } from '../../ExpressionBuilder';
 import type { SqlString } from '../../sql-string';
-
-import type { ExpressionBuilderShape } from '../../expression-builder-type';
 import { injectParameters } from '../../sql-string/helpers';
 
 // SQL keywords to ignore when extracting column names
@@ -41,7 +41,7 @@ function getColumnNamesFromSql(sql: SqlString): string[] {
  * Extract column names from ExpressionBuilder AST
  */
 function getColumnNamesFromExpression(
-  expr: ExpressionBuilderShape<ExpressionBase<any>>
+  expr: ExpressionBuilderShape<ExpressionBase<GenericAny>>
 ): string[] {
   return Array.from(
     expr._expression.columnReferences.map((val) => val[0].value)

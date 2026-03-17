@@ -1,19 +1,33 @@
+import type { GenericAny } from '@/core-utils';
 import type {
   BaseDbDiscriminator,
   ExpressionBase,
   TableBase,
-} from '../../base';
-import type { DataTypeBoolean } from '../../data-type';
+} from '../../Base';
+import type { OrderByListItem } from '../../clauses/ClauseForOrderBy';
+import type { DataTypeBoolean } from '../../DataType';
 import type {
   ExpressionBuilder,
   ExpressionBuilderShape,
-} from '../../expression-builder-type';
-import type { ExpressionColumn } from '../../expressions/expression-column';
+} from '../../ExpressionBuilder';
+import type { ExpressionColumn } from '../../expressions/ExpressionColumn';
 import type { SqlString } from '../../sql-string';
 import type { IsNever } from '../../util';
 import type { IndexState } from './index-builder';
 
 export type IndexMethod = 'btree' | 'hash' | 'gin' | 'gist' | 'brin' | 'spgist';
+
+export const operatorClassPatterns = [
+  'gin_trgm_ops',
+  'gist_trgm_ops',
+  'jsonb_ops',
+  'jsonb_path_ops',
+  'array_ops',
+] as const;
+
+export type OperatorClass =
+  | (typeof operatorClassPatterns)[number]
+  | (string & {});
 
 export interface IndexOptions {
   unique?: boolean;
@@ -21,13 +35,14 @@ export interface IndexOptions {
   method?: IndexMethod;
   inverted?: boolean;
   storageParameters?: Record<string, string | number | boolean>;
+  operatorClass?: OperatorClass;
 }
 
 export type ExtractNameFromIndexDefinition<
   TableName extends string,
   Key extends string,
-  T extends IndexDefinition<any, any>,
-> = T extends IndexDefinition<any, any, infer Name>
+  T extends IndexDefinition<GenericAny, GenericAny>,
+> = T extends IndexDefinition<GenericAny, GenericAny, infer Name>
   ? // If the name is never, then `${Table.tableName}_${Key}` is the name
     IsNever<Name> extends true
     ? `${TableName}_${Key}`
@@ -90,6 +105,27 @@ export interface IndexDefinition<
     params: NonNullable<IndexOptions['storageParameters']>
   ): IndexDefinition<Table, S, Name>;
   partitionBy(expr: 'ALL' | SqlString): IndexDefinition<Table, S, Name>;
+
+  /**
+   * Set a custom operator class for the index expressions.
+   * Use this for operator classes like gin_trgm_ops, gist_trgm_ops, jsonb_ops, array_ops, etc.
+   *
+   * @example
+   * ```typescript
+   * .indexes(({ table, index }) => ({
+   *   name_trgm: index(table.name).operatorClass('gin_trgm_ops'),
+   * }))
+   * ```
+   */
+  operatorClass(opclass: OperatorClass): IndexDefinition<Table, S, Name>;
+
+  /**
+   * Trigram operator class for GIN/GiST index.
+   * Note that in CockroachDB, GIN and GiST indexes are identical.
+   *
+   * https://www.cockroachlabs.com/docs/stable/trigram-indexes.html
+   */
+  ginTrgmOps(): IndexDefinition<Table, S, Name>;
 }
 
 /**
@@ -115,6 +151,8 @@ export interface IndexConfig<
     >;
   };
   index(
-    ...expressions: Array<ExpressionBuilderShape<any> | SqlString>
+    ...expressions: Array<
+      ExpressionBuilderShape<GenericAny> | SqlString | OrderByListItem
+    >
   ): IndexDefinition<Table, S>;
 }

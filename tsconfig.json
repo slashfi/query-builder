@@ -5,7 +5,7 @@
     "emitDeclarationOnly": true,
     "tsBuildInfoFile": "lib/.tsbuildinfo",
     "target": "ESNext",
-    "module": "ESNext",
+    "module": "commonjs",
     "strict": true,
     "strictNullChecks": true,
     "exactOptionalPropertyTypes": true,
@@ -22,10 +22,12 @@
     "forceConsistentCasingInFileNames": false,
     "composite": true,
     "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "baseUrl": ".",
     "paths": {
       "@/core-utils": ["src/core-utils"],
-      "@/core-utils/*": ["src/core-utils/*"],
+      "@/core-utils/*": ["src/core-utils/*"]
     }
   },
   "include": [

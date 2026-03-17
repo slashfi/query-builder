@@ -1,13 +1,20 @@
 import {
   type AnyOf,
-  type Expand,
-  type IsAny,
   compareTypes,
+  type Expand,
+  type GenericAny,
+  type IsAny,
 } from '@/core-utils';
-import type { DataTypeBase, ExpressionBase, TableColumnBase } from './base';
+import type { DataTypeBase, ExpressionBase, TableColumnBase } from './Base';
 import {
+  allDataTypes,
+  createDataTypeArray,
+  createDataTypeDecimal,
+  createDataTypeNull,
+  createDataTypeUnion,
   type DataTypeArray,
   type DataTypeBoolean,
+  type DataTypeDecimal,
   type DataTypeFloat,
   type DataTypeInteger,
   type DataTypeJson,
@@ -16,35 +23,60 @@ import {
   type DataTypeUnion,
   type DataTypeVarchar,
   type IsDataTypeNullable,
-  type MakeDataTypeNullable,
-  allDataTypes,
-  createDataTypeArray,
-  createDataTypeNull,
-  createDataTypeUnion,
   isDataTypeNullable,
   isNullDataType,
   isUnionDataType,
-} from './data-type';
-import type { ExpressionBuilderShape } from './expression-builder-type';
+  type MakeDataTypeNullable,
+} from './DataType';
+import type { ExpressionBuilderShape } from './ExpressionBuilder';
 import { type SqlString, sql } from './sql-string';
 import { injectParameters } from './sql-string/helpers';
 
 function createColumnWithOptions<
-  Type extends any,
+  Type extends GenericAny,
   DataType extends DataTypeBase,
   IsOptionalForInsert extends boolean,
 >(
-  type: ColumnDataTypes[number]['type'],
+  type:
+    | 'boolean'
+    | 'varchar'
+    | 'json'
+    | 'float'
+    | 'int'
+    | 'timestamp'
+    | 'array'
+    | 'decimal',
   columnName: string,
-  options?: ColumnOptions<Type, DataType, IsOptionalForInsert>
+  options?: ColumnOptions<Type, DataType, IsOptionalForInsert> & {
+    mode?: 'string' | 'bigint';
+  }
 ) {
+  // Special handling for decimal with mode
+  if (type === 'decimal' && options?.mode) {
+    const dataType =
+      options.mode === 'bigint'
+        ? createDataTypeDecimal({ isNullable: false, mode: 'bigint' })
+        : createDataTypeDecimal({ isNullable: false, mode: 'string' });
+
+    const base = createTableColumnBuilder(type, columnName, {
+      class: 'table_column',
+      variant: 'column',
+      type: 'column',
+      columnName,
+      dataType,
+      isOptionalForInsert: false,
+    });
+
+    return options?.isNullable ? (base.isNullable() as GenericAny) : base;
+  }
+
   const base = createTableColumnBuilder(type, columnName);
-  return options?.isNullable ? (base.isNullable() as any) : base;
+  return options?.isNullable ? (base.isNullable() as GenericAny) : base;
 }
 
 export function createTableColumnInferrer(
   columnName: string
-): TableColumnBuilderInferrer<any, any> {
+): TableColumnBuilderInferrer<GenericAny, GenericAny> {
   return {
     varchar: (...options) =>
       createColumnWithOptions('varchar', columnName, options[0]),
@@ -57,6 +89,8 @@ export function createTableColumnInferrer(
       createColumnWithOptions('timestamp', columnName, options[0]),
     json: (...options) =>
       createColumnWithOptions('json', columnName, options[0]),
+    decimal: (...options) =>
+      createColumnWithOptions('decimal', columnName, options[0]),
     array: (...options) => {
       const base = createTableColumnBuilder('array', columnName);
       if (!options[0]?.baseType) {
@@ -72,7 +106,7 @@ export function createTableColumnInferrer(
       return options[0]?.isNullable
         ? (base.isNullable().setBaseType({
             base: subType,
-          }) as any)
+          }) as GenericAny)
         : base.setBaseType({ base: subType });
     },
   };
@@ -88,14 +122,14 @@ export function createTableColumnBuilder(
     columnName,
     dataType: {
       class: 'data_type',
-      baseExpression: {} as any,
-      constExpression: {} as any,
-      narrowedType: {} as any,
+      baseExpression: {} as GenericAny,
+      constExpression: {} as GenericAny,
+      narrowedType: {} as GenericAny,
       type,
     },
     isOptionalForInsert: false,
   }
-): TableColumnBuilder<any> {
+): TableColumnBuilder<GenericAny> {
   return {
     isNullable: () => {
       return createTableColumnBuilder(type, columnName, {
@@ -113,6 +147,13 @@ export function createTableColumnBuilder(
         dataType: base.dataType,
         default: sqlValue,
         isOptionalForInsert: options?.isOptionalForInsert ?? false,
+      });
+    },
+    computed: (expression) => {
+      return createTableColumnBuilder(type, columnName, {
+        ...base,
+        computedExpression: expression,
+        isOptionalForInsert: true,
       });
     },
     getColumn() {
@@ -161,13 +202,13 @@ type ColumnOptions<
   Type,
   DataType extends DataTypeBase,
   IsOptionalForInsert extends boolean,
-> = Type extends any
+> = Type extends GenericAny
   ? {
       isNullable?: boolean;
       default?:
         | SqlString
         | ExpressionBuilderShape<ExpressionBase<DataType>>
-        | any;
+        | GenericAny;
       isOptionalForInsert?: IsOptionalForInsert;
     }
   : undefined extends Type
@@ -181,7 +222,7 @@ type ColumnOptions<
       };
 
 export type TableColumnBuilderInferrer<
-  Type extends any,
+  Type extends GenericAny,
   ColumnName extends string,
 > = {
   [Key in PossibleDataTypesForTypescriptType<
@@ -206,11 +247,19 @@ export type TableColumnBuilderInferrer<
           ? [
               { isNullable: true } & (DataType['type'] extends 'array'
                 ? { baseType: BaseType }
-                : {}),
+                : DataType['type'] extends 'decimal'
+                  ? NonNullable<Type> extends bigint
+                    ? { mode: 'bigint' }
+                    : { mode?: 'string' }
+                  : {}),
             ]
           : DataType['type'] extends 'array'
             ? [{ baseType: BaseType }]
-            : []
+            : DataType['type'] extends 'decimal'
+              ? NonNullable<Type> extends bigint
+                ? [{ mode: 'bigint' }]
+                : [{ mode?: 'string' }?]
+              : []
       ) => TableColumnBuilder<{
         class: 'table_column';
         type: 'column';
@@ -256,6 +305,15 @@ export type TableColumnBuilder<Column extends TableColumnBase> = {
       }
     >
   >;
+  computed: (expression: SqlString) => TableColumnBuilder<
+    SetTableColumn<
+      Column,
+      {
+        computedExpression: SqlString;
+        isOptionalForInsert: true;
+      }
+    >
+  >;
   getColumn(): Column;
 } & (AnyOf<
   [Column['dataType'] extends DataTypeArray ? true : false, IsAny<Column>]
@@ -280,8 +338,10 @@ export type ColumnDataTypes = readonly [
   DataTypeFloat<number>,
   DataTypeBoolean<boolean>,
   DataTypeTimestamp<Date>,
-  DataTypeArray<any>,
-  DataTypeJson<any>,
+  DataTypeArray<GenericAny>,
+  DataTypeJson<GenericAny>,
+  DataTypeDecimal<string>,
+  DataTypeDecimal<bigint>,
 ];
 
 export type GetDataTypesForTs<
@@ -308,31 +368,33 @@ export type GetDataTypesForTs<
       ? DataTypeInteger<Type>
       : DataType extends DataTypeBoolean<boolean>
         ? DataTypeBoolean<Type>
-        : DataType extends DataTypeJson<any>
+        : DataType extends DataTypeJson<GenericAny>
           ? DataTypeJson<Type>
-          : DataType extends DataTypeTimestamp<any>
+          : DataType extends DataTypeTimestamp<GenericAny>
             ? DataTypeTimestamp<Type>
-            : DataType extends DataTypeArray<any>
-              ? // this is some hacky logic to make sure that
-                // array types are inferred properly.
-                Extract<
-                  ColumnDataTypes[number],
-                  { type: BaseType }
-                > extends infer NarrowedDataType extends DataTypeBase
-                ? Type[number] extends NarrowedDataType['narrowedType']
-                  ? DataTypeArray<
-                      First extends true
-                        ? GetDataTypesForTs<
-                            NarrowedDataType,
-                            Type[number],
-                            BaseType,
-                            false
-                          >
-                        : never
-                    >
+            : DataType extends DataTypeDecimal<string>
+              ? DataTypeDecimal<Type>
+              : DataType extends DataTypeArray<GenericAny>
+                ? // this is some hacky logic to make sure that
+                  // array types are inferred properly.
+                  Extract<
+                    ColumnDataTypes[number],
+                    { type: BaseType }
+                  > extends infer NarrowedDataType extends DataTypeBase
+                  ? Type[number] extends NarrowedDataType['narrowedType']
+                    ? DataTypeArray<
+                        First extends true
+                          ? GetDataTypesForTs<
+                              NarrowedDataType,
+                              Type[number],
+                              BaseType,
+                              false
+                            >
+                          : never
+                      >
+                    : never
                   : never
-                : never
-              : DataType;
+                : DataType;
 
 type PossibleDataTypesForTypescriptType<
   T,
@@ -343,12 +405,37 @@ type PossibleDataTypesForTypescriptType<
 ]
   ? T extends U['narrowedType']
     ? [U, ...PossibleDataTypesForTypescriptType<T, J>]
-    : PossibleDataTypesForTypescriptType<T, J>
+    : T extends ReadonlyArray<infer ElementType>
+      ? U extends DataTypeArray<infer PrimitiveType>
+        ? ElementType extends PrimitiveType['narrowedType']
+          ? [U, ...PossibleDataTypesForTypescriptType<T, J>]
+          : PossibleDataTypesForTypescriptType<T, J>
+        : PossibleDataTypesForTypescriptType<T, J>
+      : PossibleDataTypesForTypescriptType<T, J>
   : [];
 
 compareTypes<{
   a: PossibleDataTypesForTypescriptType<number, ColumnDataTypes>[number];
-  b: DataTypeFloat<number> | DataTypeInteger<number> | DataTypeJson<any>;
+  b: DataTypeFloat<number> | DataTypeInteger<number> | DataTypeJson<GenericAny>;
+}>()
+  .expect('a')
+  .toBeEquivalent('b');
+
+// Add a compareTypes call for string types to ensure decimal is included
+compareTypes<{
+  a: PossibleDataTypesForTypescriptType<string, ColumnDataTypes>[number];
+  b:
+    | DataTypeVarchar<string>
+    | DataTypeDecimal<string>
+    | DataTypeJson<GenericAny>;
+}>()
+  .expect('a')
+  .toBeEquivalent('b');
+
+// Add a compareTypes call for bigint types to ensure decimal is included
+compareTypes<{
+  a: PossibleDataTypesForTypescriptType<bigint, ColumnDataTypes>[number];
+  b: DataTypeDecimal<bigint> | DataTypeJson<GenericAny>;
 }>()
   .expect('a')
   .toBeEquivalent('b');

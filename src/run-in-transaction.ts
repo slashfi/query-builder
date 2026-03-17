@@ -1,14 +1,15 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
-import type { BaseDbDiscriminator } from './base';
+import type { GenericAny } from '@/core-utils';
+import type { BaseDbDiscriminator } from './Base';
 import type { DbConfig } from './db-helper';
 
 export const managerLocalStorage = new AsyncLocalStorage<{
-  manager: any;
+  manager: GenericAny;
   sideEffects: (() => Promise<void>)[];
 }>();
 
 export const createTransaction = <S extends BaseDbDiscriminator>(
-  config: DbConfig<S, any>
+  config: DbConfig<S, GenericAny>
 ) => {
   return async <T>(func: () => Promise<T>): Promise<T> => {
     if (!config.runQueriesInTransaction) {
@@ -23,7 +24,7 @@ export const createTransaction = <S extends BaseDbDiscriminator>(
 
     const sideEffects: (() => Promise<void>)[] = [];
 
-    let result: any;
+    let result: GenericAny;
     await config.runQueriesInTransaction(async (manager) => {
       await managerLocalStorage.run({ manager, sideEffects }, async () => {
         result = await func();

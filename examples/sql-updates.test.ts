@@ -4,7 +4,7 @@ import { diffSchemas } from '@slashfi/query-builder/introspection/schema-diff';
 import type { SqlString } from '@slashfi/query-builder/sql-string';
 import pg from 'pg';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { UpdateTestTable, db, queryExecutor } from './sql-updates.schema';
+import { db, queryExecutor, UpdateTestTable } from './sql-updates.schema';
 
 describe('SQL Update Operations', () => {
   describe('Runtime Behavior', () => {

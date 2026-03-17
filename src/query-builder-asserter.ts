@@ -1,15 +1,17 @@
-import type { DropNeverKeys, IsAny, TypecheckError } from '@/core-utils';
 import type {
-  QueryBuilderParams,
-  SelectionArray,
-} from './query-builder-params';
-import type { BaseDbDiscriminator, ExpressionBase } from './base';
-import type { ClauseForGroupByList } from './clauses/clause-for-group-by';
-import type { ClauseForSelectListItem } from './clauses/clausefor-select-list-item';
-import type { ExpressionColumn } from './expressions/expression-column';
-import type { GetEntityFromTargetList, TargetBase } from './from-builder';
-import type { SelectQueryBuilder } from './query-builder';
-import type { SqlQueryBuilder } from './sql-query-builder/sql-query-builder';
+  DropNeverKeys,
+  GenericAny,
+  IsAny,
+  TypecheckError,
+} from '@/core-utils';
+import type { BaseDbDiscriminator, ExpressionBase } from './Base';
+import type { ClauseForGroupByList } from './clauses/ClauseForGroupBy';
+import type { ClauseForSelectListItem } from './clauses/ClauseForSelectListItem';
+import type { ExpressionColumn } from './expressions/ExpressionColumn';
+import type { GetEntityFromTargetList, TargetBase } from './FromBuilder';
+import type { SelectQueryBuilder } from './QueryBuilder';
+import type { QueryBuilderParams, SelectionArray } from './QueryBuilderParams';
+import type { SqlQueryBuilder } from './sql-query-builder/SqlQueryBuilder';
 import type {
   CheckForTypecheckError,
   FilterNeverValuesFromReadonlyArray,
@@ -20,7 +22,7 @@ type AssertQbParams<
   Params extends QueryBuilderParams<S>,
   S extends BaseDbDiscriminator,
 > = Params['groupByClause'] extends infer GroupBy extends ReadonlyArray<
-  ClauseForGroupByList<any>
+  ClauseForGroupByList<GenericAny>
 >
   ? IsAny<Params> extends true
     ? Params
@@ -30,7 +32,7 @@ type AssertQbParams<
             GroupColumns<Params['entities'], GroupBy, S>,
             S
           >
-        > extends infer Error extends TypecheckError<any, any>
+        > extends infer Error extends TypecheckError<GenericAny, GenericAny>
       ? Error
       : Params
   : never;
@@ -62,11 +64,13 @@ export type AssertSelectQueryBuilder<
 
 type AssertSelectColumns<
   T extends SelectionArray,
-  WhitelistColumns extends ReadonlyArray<ExpressionColumn<any, any, S>>,
+  WhitelistColumns extends ReadonlyArray<
+    ExpressionColumn<GenericAny, GenericAny, S>
+  >,
   S extends BaseDbDiscriminator,
 > = T extends readonly [infer U, ...infer J extends SelectionArray]
   ? U extends ClauseForSelectListItem<
-      infer U extends ExpressionBase<any>,
+      infer U extends ExpressionBase<GenericAny>,
       string | undefined
     >
     ? [
@@ -77,8 +81,10 @@ type AssertSelectColumns<
   : [];
 
 type AssertSingleSelectColumn<
-  T extends ExpressionBase<any>,
-  WhitelistColumns extends ReadonlyArray<ExpressionColumn<any, any, S>>,
+  T extends ExpressionBase<GenericAny>,
+  WhitelistColumns extends ReadonlyArray<
+    ExpressionColumn<GenericAny, GenericAny, S>
+  >,
   S extends BaseDbDiscriminator,
 > = SomeValueInFirstExtendsSecond<
   GetNonAggregateColumnsInSelect<T['columnReferences'], S>,
@@ -101,19 +107,19 @@ type AssertSingleSelectColumn<
 
 type GetNonAggregateColumnsInSelect<
   Expr extends ReadonlyArray<
-    [column: ExpressionColumn<any, any, S>, isAggregate: boolean]
+    [column: ExpressionColumn<GenericAny, GenericAny, S>, isAggregate: boolean]
   >,
   S extends BaseDbDiscriminator,
 > = FilterNeverValuesFromReadonlyArray<GetNonAggregateColumnsBase<Expr, S>>;
 
 type GetNonAggregateColumnsBase<
   Expr extends ReadonlyArray<
-    [column: ExpressionColumn<any, any, S>, isAggregate: boolean]
+    [column: ExpressionColumn<GenericAny, GenericAny, S>, isAggregate: boolean]
   >,
   S extends BaseDbDiscriminator,
 > = {
   [Key in keyof Expr]: Expr[Key] extends [
-    infer U extends ExpressionColumn<any, any, S>,
+    infer U extends ExpressionColumn<GenericAny, GenericAny, S>,
     false,
   ]
     ? U
@@ -122,7 +128,7 @@ type GetNonAggregateColumnsBase<
 
 type GroupColumns<
   Entities extends ReadonlyArray<TargetBase<S>>,
-  GroupBy extends ReadonlyArray<ClauseForGroupByList<any>>,
+  GroupBy extends ReadonlyArray<ClauseForGroupByList<GenericAny>>,
   S extends BaseDbDiscriminator,
 > = {
   [Key in keyof GroupBy]: GroupBy[Key] extends ClauseForGroupByList<

@@ -1,4 +1,4 @@
-import type { DataTypeBase, OperatorBase } from '../base';
+import type { DataTypeBase, OperatorBase } from '../Base';
 
 export interface OperatorBinaryBase extends OperatorBase {
   class: 'operator';

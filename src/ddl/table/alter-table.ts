@@ -1,4 +1,4 @@
-import { getSqlForColumnExpressionForDataType } from '../../migrations/column-expression-for-data-type';
+import { getSqlForColumnExpressionForDataType } from '../../migrations/columnExpressionForDataType';
 import type { SqlString } from '../../sql-string';
 import { sql } from '../../sql-string';
 import type {
@@ -123,13 +123,22 @@ const handleAddColumn = (
 
   const parts = [
     sql`ALTER TABLE ${sql.table({ name: tableName, schema })} ADD COLUMN ${sql.column({ name: action.name })}`,
+  ];
+
+  parts.push(
     getSqlForColumnExpressionForDataType(colDef.dataType, {
       defaultValue: colDef.default,
-    }),
-    ...(colDef.constraints?.length
-      ? serializeConstraints(colDef.constraints)
-      : []),
-  ];
+    })
+  );
+
+  if (colDef.computedExpression) {
+    // For computed columns, use the computed expression instead of data type
+    parts.push(sql`AS (${colDef.computedExpression}) STORED`);
+  }
+
+  if (colDef.constraints?.length) {
+    parts.push(...serializeConstraints(colDef.constraints));
+  }
 
   return {
     up: sql.join(parts, ' '),

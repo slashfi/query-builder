@@ -82,9 +82,6 @@ describe('Schema handling', () => {
     // Verify main table still uses custom schema
     expect(query).toContain('"custom"."main_table"');
 
-    // Log the full query to inspect VALUES table format
-    console.log(query);
-
     // Verify VALUES table doesn't have a schema prefix
     expect(query).not.toContain('"public"."vals"');
     expect(query).not.toContain('."vals"');

@@ -77,7 +77,7 @@ describe('JsonB', function () {
     expect(sqlString.getQuery()).toEqual(
       `SELECT "jsonbTest"."id" AS "jsonbTest_id", "jsonbTest"."myField" AS "jsonbTest_myField", "jsonbTest"."nullableField" AS "jsonbTest_nullableField" FROM "public"."jsonb_test"  AS "jsonbTest"  WHERE CAST("jsonbTest"."myField"->>$1 AS int) = $2`
     );
-    expect(sqlString.getParameters()).toEqual(['a', 1]);
+    expect(sqlString.getParameters()).to.deep.equal(['a', 1]);
   });
 
   it('should be able to check isNull on any subfield of a jsonb column', function () {
@@ -95,8 +95,7 @@ describe('JsonB', function () {
     expect(sqlString.getQuery()).toEqual(
       `SELECT "jsonbTest"."id" AS "jsonbTest_id", "jsonbTest"."myField" AS "jsonbTest_myField", "jsonbTest"."nullableField" AS "jsonbTest_nullableField" FROM "public"."jsonb_test"  AS "jsonbTest"  WHERE "jsonbTest"."myField"->>$1 IS NULL`
     );
-
-    expect(sqlString.getParameters()).toEqual(['nested']);
+    expect(sqlString.getParameters()).to.deep.equal(['nested']);
   });
 
   it('should be able to check isNull on any subfield of a jsonb column (with cast)', function () {
@@ -114,6 +113,6 @@ describe('JsonB', function () {
     expect(sqlString.getQuery()).toEqual(
       `SELECT "jsonbTest"."id" AS "jsonbTest_id", "jsonbTest"."myField" AS "jsonbTest_myField", "jsonbTest"."nullableField" AS "jsonbTest_nullableField" FROM "public"."jsonb_test"  AS "jsonbTest"  WHERE "jsonbTest"."myField"->>$1 IS NULL`
     );
-    expect(sqlString.getParameters()).toEqual(['nested']);
+    expect(sqlString.getParameters()).to.deep.equal(['nested']);
   });
 });

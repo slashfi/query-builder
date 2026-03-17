@@ -1,29 +1,26 @@
-import type { TypecheckError } from '@/core-utils';
+import type { GenericAny, TypecheckError } from '@/core-utils';
 import type {
   BaseDbDiscriminator,
   DataTypeBase,
   ExpressionBase,
-} from '../base';
-import type {
-  GetNonNullableDataType,
-  MakeDataTypeNullable,
-} from '../data-type';
+} from '../Base';
+import type { GetNonNullableDataType, MakeDataTypeNullable } from '../DataType';
+import type { ExpressionBuilder } from '../ExpressionBuilder';
 import { createExpressionBuilder } from '../expression-builder';
-import type { ExpressionBuilder } from '../expression-builder-type';
 import {
   type ExpressionAggregateSum,
-  type ValidDataTypesForAggregateSum,
   expressionSum,
-} from '../expressions/expression-fn-sum';
+  type ValidDataTypesForAggregateSum,
+} from '../expressions/ExpressionFnSum';
 
 export const sum: Sum = (builder) => {
   const b = createExpressionBuilder(expressionSum.create(builder._expression));
 
-  return b as any;
+  return b as GenericAny;
 };
 
 export type Sum = <
-  Builder extends ExpressionBuilder<any, S>,
+  Builder extends ExpressionBuilder<GenericAny, S>,
   S extends BaseDbDiscriminator,
 >(
   builder: Builder

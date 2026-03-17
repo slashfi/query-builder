@@ -57,9 +57,10 @@ export async function generateMigrationName(
     );
   }
 
+  // biome-ignore lint/suspicious/noConsole: override
   console.log('Generating migration name...');
 
-  const { apiKey, model = 'claude-3-5-haiku-latest' } =
+  const { apiKey, model = 'claude-haiku-4-5' } =
     config.features.anthropicMigrationNaming;
 
   // Format the schema changes into a clear description

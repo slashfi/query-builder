@@ -1,15 +1,16 @@
-import type { BaseDbDiscriminator, DataTypeBase, TableBase } from '../base';
+import type { BaseDbDiscriminator, DataTypeBase, TableBase } from '../Base';
 import {
   createDataTypeArray,
   createDataTypeBoolean,
+  createDataTypeDecimal,
   createDataTypeFloat,
   createDataTypeInteger,
   createDataTypeJson,
   createDataTypeTimestamp,
   createDataTypeVarchar,
   makeDataTypeNullable,
-} from '../data-type';
-import type { EntityTarget } from '../entity-target';
+} from '../DataType';
+import type { EntityTarget } from '../EntityTarget';
 import type { SchemaDiff, TableDiff } from '../introspection/schema-diff';
 import { formatDiff } from '../introspection/schema-diff';
 import type { SqlString } from '../sql-string';
@@ -43,6 +44,7 @@ function generateCreateTableStatement<S extends BaseDbDiscriminator>(
       dataType: col.dataType,
       constraints: [],
       default: col.default,
+      computedExpression: col.computedExpression,
     })),
     constraints: [
       {
@@ -83,6 +85,9 @@ function createDataType(
       case 'float8':
       case 'double precision':
         return createDataTypeFloat();
+      case 'decimal':
+      case 'numeric':
+        return createDataTypeDecimal();
       case 'boolean':
       case 'bool':
         return createDataTypeBoolean();
@@ -136,6 +141,10 @@ function generateAlterTableActions<S extends BaseDbDiscriminator>(
             baseType: col.baseType?.db,
           }),
           constraints: [],
+          ...(col.default?.db && { default: col.default.db }),
+          ...(col.computedExpression?.db && {
+            computedExpression: col.computedExpression.db,
+          }),
         },
       };
       actionGroups.push([action]);
@@ -155,6 +164,7 @@ function generateAlterTableActions<S extends BaseDbDiscriminator>(
           },
         ],
       };
+      // biome-ignore lint/suspicious/noConsole: override
       console.warn(formatDiff(diff));
     }
   }
@@ -174,6 +184,7 @@ function generateAlterTableActions<S extends BaseDbDiscriminator>(
             }),
             constraints: [],
             default: col.default?.schema,
+            computedExpression: col.computedExpression?.schema,
           },
         };
         actionGroups.push([action]);
@@ -193,6 +204,7 @@ function generateAlterTableActions<S extends BaseDbDiscriminator>(
             },
           ],
         };
+        // biome-ignore lint/suspicious/noConsole: override
         console.warn(formatDiff(diff));
       }
     }
@@ -237,6 +249,7 @@ function generateAlterTableActions<S extends BaseDbDiscriminator>(
             },
           ],
         };
+        // biome-ignore lint/suspicious/noConsole: override
         console.warn(formatDiff(diff));
       }
     }
@@ -277,6 +290,67 @@ function generateAlterTableActions<S extends BaseDbDiscriminator>(
             },
           ],
         };
+        // biome-ignore lint/suspicious/noConsole: override
+        console.warn(formatDiff(diff));
+      }
+    }
+
+    // Handle computed expression changes
+    if (col.computedExpression?.schema) {
+      if (enforceColumns) {
+        // For computed columns, we need to drop and recreate the column
+        // since ALTER COLUMN doesn't support changing computed expressions directly
+        const dropAction: DropColumnAction = {
+          type: 'DROP COLUMN',
+          name: col.name,
+          cascade: false,
+          previousState: {
+            dataType: createDataType(col.type?.db ?? 'varchar', {
+              isNullable: col.nullable?.db ?? false,
+              baseType: col.baseType?.db,
+            }),
+            constraints: [],
+            ...(col.computedExpression.db && {
+              computedExpression: col.computedExpression.db,
+            }),
+          },
+        };
+
+        const addAction: AddColumnAction = {
+          type: 'ADD COLUMN',
+          name: col.name,
+          columnDefinition: {
+            name: col.name,
+            dataType: createDataType(col.type?.schema ?? 'varchar', {
+              isNullable: col.nullable?.schema ?? false,
+              baseType: col.baseType?.schema,
+            }),
+            constraints: [],
+            default: col.default?.schema,
+            computedExpression: col.computedExpression.schema,
+          },
+        };
+
+        // Drop and recreate as separate action groups to ensure proper ordering
+        actionGroups.push([dropAction]);
+        actionGroups.push([addAction]);
+      } else if (warnColumns) {
+        const diff: SchemaDiff = {
+          missingTables: [],
+          extraTables: [],
+          modifiedTables: [
+            {
+              name: tableDiff.name,
+              missingColumns: [],
+              extraColumns: [],
+              modifiedColumns: [col],
+              missingIndexes: [],
+              extraIndexes: [],
+              modifiedIndexes: [],
+            },
+          ],
+        };
+        // biome-ignore lint/suspicious/noConsole: override
         console.warn(formatDiff(diff));
       }
     }
@@ -339,6 +413,7 @@ export function generateMigrations<S extends BaseDbDiscriminator>(
                 },
               ],
             };
+            // biome-ignore lint/suspicious/noConsole: override
             console.warn(formatDiff(diff));
           }
         }
@@ -435,6 +510,7 @@ export function generateMigrations<S extends BaseDbDiscriminator>(
             },
           ],
         };
+        // biome-ignore lint/suspicious/noConsole: override
         console.warn(formatDiff(diff));
       }
     }
