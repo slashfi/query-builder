@@ -5,7 +5,7 @@ import type {
   IsAny,
   Not,
   TypecheckError,
-} from '@/core-utils';
+} from './core-utils';
 import type {
   AstNode,
   BaseDbDiscriminator,

@@ -4,7 +4,7 @@ import {
   type Expand,
   type GenericAny,
   type IsAny,
-} from '@/core-utils';
+} from './core-utils';
 import type { DataTypeBase, ExpressionBase, TableColumnBase } from './Base';
 import {
   allDataTypes,

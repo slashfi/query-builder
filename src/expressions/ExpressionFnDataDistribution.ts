@@ -2,7 +2,7 @@ import {
   assertUnreachable,
   type GenericAny,
   type IsAny,
-} from '@/core-utils';
+} from '../core-utils';
 import { getAstNodeRepository } from '../ast-node-repository';
 import type { ColumnReference, ExpressionBase } from '../Base';
 import { createAstNode } from '../createAstNode';

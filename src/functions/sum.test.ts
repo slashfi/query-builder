@@ -1,4 +1,4 @@
-import { compareTypes } from '@/core-utils';
+import { compareTypes } from '../core-utils';
 import { describe, expect, it } from 'vitest';
 import { createDb, createDbDiscriminator } from '../db-helper';
 import { sum } from './sum';

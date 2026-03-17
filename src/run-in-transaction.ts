@@ -1,5 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
-import type { GenericAny } from '@/core-utils';
+import type { GenericAny } from './core-utils';
 import type { BaseDbDiscriminator } from './Base';
 import type { DbConfig } from './db-helper';
 

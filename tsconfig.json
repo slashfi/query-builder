@@ -23,12 +23,7 @@
     "composite": true,
     "moduleResolution": "node",
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/core-utils": ["src/core-utils"],
-      "@/core-utils/*": ["src/core-utils/*"]
-    }
+    "emitDecoratorMetadata": true
   },
   "include": [
     "src",

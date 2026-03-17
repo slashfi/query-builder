@@ -1,4 +1,4 @@
-import type { GenericAny } from '@/core-utils';
+import type { GenericAny } from '../core-utils';
 import { getAstNodeRepository } from '../ast-node-repository';
 import type { DataTypeBase, ExpressionBase } from '../Base';
 import { createAstNode } from '../createAstNode';

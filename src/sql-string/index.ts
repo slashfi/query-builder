@@ -1,4 +1,4 @@
-import { assertUnreachable } from '@/core-utils';
+import { assertUnreachable } from '../core-utils';
 import { escapeIdentifier, isArray, rawIdentifier } from './helpers';
 
 const parameterSymbol = Symbol('?');

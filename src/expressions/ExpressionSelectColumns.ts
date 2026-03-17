@@ -3,7 +3,7 @@ import {
   mapObject,
   pick,
   type TuplifyUnion,
-} from '@/core-utils';
+} from '../core-utils';
 import type { BaseDbDiscriminator, ExpressionBase } from '../Base';
 import { createAstNode } from '../createAstNode';
 import {

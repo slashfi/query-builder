@@ -1,4 +1,4 @@
-import type { GenericAny } from '@/core-utils';
+import type { GenericAny } from './core-utils';
 import type { BaseDbDiscriminator, ExpressionBase } from './Base';
 import type { ConstantBase } from './constants/base';
 import { constantForArray } from './constants/ConstantForArray';

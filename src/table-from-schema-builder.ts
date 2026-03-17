@@ -6,7 +6,7 @@ import type {
   IsAny,
   OriginalReferenceableObject,
   TypecheckError,
-} from '@/core-utils';
+} from './core-utils';
 import { getAstNodeRepository } from './ast-node-repository';
 import type {
   BaseDbDiscriminator,
