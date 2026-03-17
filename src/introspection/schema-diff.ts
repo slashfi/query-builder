@@ -272,7 +272,8 @@ function compareColumns(
     const schemaHasComputed = schemaColumn.computedExpression !== undefined;
     const dbHasComputed =
       dbColumn.computedExpression !== null &&
-      dbColumn.computedExpression !== undefined;
+      dbColumn.computedExpression !== undefined &&
+      dbColumn.computedExpression !== '';
 
     // If neither has computed expression, no difference
     if (!schemaHasComputed && !dbHasComputed) {
