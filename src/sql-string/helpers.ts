@@ -1,4 +1,4 @@
-import type { GenericAny } from '@/core-utils';
+import type { GenericAny } from '../core-utils';
 import type { SqlString } from '.';
 
 // Alphanumeric + _ + - (case-insensitive)

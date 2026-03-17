@@ -1,7 +1,12 @@
 {
   "name": "@slashfi/query-builder",
-  "version": "0.0.2",
+  "version": "0.1.0",
+  "description": "A type-safe SQL query builder for TypeScript with CockroachDB support",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/slashfi/query-builder.git"
+  },
   "main": "lib/index.js",
   "module": "esm/index.js",
   "types": "lib/index.d.ts",
@@ -32,29 +37,36 @@
       "types": "./lib/*.d.ts"
     }
   },
+  "files": [
+    "lib",
+    "esm",
+    "bin",
+    "src"
+  ],
   "bin": {
     "qb": "./bin/qb"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "build": "yarn build:cjs && yarn build:esm && yarn build:tsc",
+    "build": "npm run clean && npm run build:cjs && npm run build:esm && npm run build:tsc",
     "build:cjs": "swc src --out-dir lib",
     "build:esm": "swc src --out-dir esm -C module.type=es6 && echo '{\"type\":\"module\"}' > esm/package.json",
-    "build:dev": "concurrently \"npm run build:swc:dev\" \"npm run build:tsc -b -w\"",
-    "build:swc": "yarn build:cjs",
-    "build:swc:dev": "yarn build:cjs -w",
     "build:tsc": "tsc",
     "clean": "rm -rf lib esm",
+    "prepublishOnly": "npm run build",
     "format": "biome format .",
     "format:fix": "biome format . --write",
     "lint": "biome check .",
-    "lint:ci": "biome ci . && yarn lint",
+    "lint:ci": "biome ci . && npm run lint",
     "lint:fix": "biome check . --write",
     "test": "vitest run",
     "test:all": "npm run db:up && npm run db:wait && vitest run; npm run db:down",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down -v",
     "db:wait": "echo 'Waiting for CockroachDB...' && until docker compose exec crdb curl -sf http://localhost:8080/health?ready=1 > /dev/null 2>&1; do sleep 1; done && echo 'CockroachDB ready'",
-    "typecheck": "yarn build:tsc"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@sinclair/typebox": "~0.34.0",
@@ -63,7 +75,7 @@
     "cmd-ts": "~0.13.0",
     "glob": "~8.0.3",
     "pg": "^8.11.3",
-    "typescript": "5.9.2"
+    "typescript": "~5.9.2"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.5",
@@ -73,7 +85,6 @@
     "@types/glob": "~7.2.0",
     "@types/node": "~22.13.14",
     "@types/pg": "~8.11.0",
-    "@typescript-eslint/parser": "~5.60.0",
     "vite": "^5.2.0",
     "vite-tsconfig-paths": "~4.3.1",
     "vitest": "^3.2.4"

@@ -1,4 +1,4 @@
-import type { GenericAny } from '@/core-utils';
+import type { GenericAny } from '../../core-utils';
 import ts from 'typescript';
 import { getAstNodeRepository } from '../../ast-node-repository';
 import type {

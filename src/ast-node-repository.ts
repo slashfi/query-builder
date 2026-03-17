@@ -1,4 +1,4 @@
-import type { GenericAny } from '@/core-utils';
+import type { GenericAny } from './core-utils';
 import type { AstNode } from './Base';
 import { clauseForGroupByList } from './clauses/ClauseForGroupBy';
 import { clauseForOrderByList } from './clauses/ClauseForOrderBy';

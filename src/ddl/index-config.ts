@@ -1,4 +1,4 @@
-import { filterUndefined, type OriginalReferenceableObject } from '@/core-utils';
+import { filterUndefined, type OriginalReferenceableObject } from '../core-utils';
 import type { BaseDbDiscriminator, TableBase } from '../Base';
 import { sql } from '../sql-string/index';
 import type { __queryBuilderIndexes } from './codegen/index-metadata';

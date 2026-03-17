@@ -1,4 +1,4 @@
-import type { GenericAny, MakeRequired } from '@/core-utils';
+import type { GenericAny, MakeRequired } from './core-utils';
 import type { BaseDbDiscriminator, ExpressionBase } from './Base';
 import type { ClauseForSelectListItem } from './clauses/ClauseForSelectListItem';
 import type { DataTypeBoolean, IsDataTypeNullable } from './DataType';

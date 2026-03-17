@@ -1,4 +1,4 @@
-import type { GenericAny } from '@/core-utils';
+import type { GenericAny } from './core-utils';
 import type { ConstantBase } from './constants/base';
 import type { IndexDefinition } from './ddl/index-builder/index-definition';
 import type { DdlIndexDefinition } from './ddl/table';

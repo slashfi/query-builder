@@ -6,7 +6,7 @@ import {
   type GenericAny,
   type IsAny,
   type Not,
-} from '@/core-utils';
+} from './core-utils';
 import { getAstNodeRepository } from './ast-node-repository';
 import type {
   BaseDbDiscriminator,

@@ -1,4 +1,4 @@
-import { filterUndefined, type GenericAny } from '@/core-utils';
+import { filterUndefined, type GenericAny } from './core-utils';
 import type {
   BaseDbDiscriminator,
   DataTypeBase,

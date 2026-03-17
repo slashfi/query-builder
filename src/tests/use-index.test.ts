@@ -1,4 +1,4 @@
-import type { GenericAny } from '@/core-utils';
+import type { GenericAny } from '../core-utils';
 import { describe, expect, it } from 'vitest';
 import { createDb, createDbDiscriminator } from '../db-helper';
 import type { SqlString } from '../sql-string';

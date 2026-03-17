@@ -1,4 +1,4 @@
-import { typecheckUnreachable } from '@/core-utils';
+import { typecheckUnreachable } from '../core-utils';
 import type { DataTypeBase } from '../Base';
 import {
   type allDataTypes,

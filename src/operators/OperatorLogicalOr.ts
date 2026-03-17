@@ -1,4 +1,4 @@
-import { assertUnreachable } from '@/core-utils';
+import { assertUnreachable } from '../core-utils';
 import { createAstNode } from '../createAstNode';
 import { sql } from '../sql-string';
 import type { OperatorLogicalBase } from './base';

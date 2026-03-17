@@ -1,4 +1,4 @@
-import type { GenericAny, TypecheckError } from '@/core-utils';
+import type { GenericAny, TypecheckError } from '../core-utils';
 import type { BaseDbDiscriminator } from '../Base';
 import type {
   DataTypeFromExpression,

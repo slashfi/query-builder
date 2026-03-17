@@ -1,4 +1,4 @@
-import { type AnyOf, assertUnreachable, type IsAny } from '@/core-utils';
+import { type AnyOf, assertUnreachable, type IsAny } from '../core-utils';
 import type {
   BaseDbDiscriminator,
   DataTypeBase,

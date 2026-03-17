@@ -1,4 +1,4 @@
-import type { AnyOf, Expand, GenericAny, Not } from '@/core-utils';
+import type { AnyOf, Expand, GenericAny, Not } from './core-utils';
 import type { BaseDbDiscriminator, DataTypeBase } from './Base';
 import {
   type DataTypeDecimal,

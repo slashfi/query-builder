@@ -1,4 +1,4 @@
-import type { AnyOf, GenericAny, IsAny } from '@/core-utils';
+import type { AnyOf, GenericAny, IsAny } from '../core-utils';
 import type { BaseDbDiscriminator } from '../Base';
 import { clauseFromExpression } from '../clauses/ClauseFromExpression';
 import {

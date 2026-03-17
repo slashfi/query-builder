@@ -1,4 +1,4 @@
-import type { GenericAny } from '@/core-utils';
+import type { GenericAny } from '../core-utils';
 import type { ExpressionBase } from '../Base';
 import { createAstNode } from '../createAstNode';
 import { createDataTypeNull, type DataTypeNull } from '../DataType';

@@ -1,4 +1,4 @@
-import { filterUndefined, type GenericAny } from '@/core-utils';
+import { filterUndefined, type GenericAny } from './core-utils';
 import { getNodeName } from './ast-node-repository';
 import type { BaseDbDiscriminator, ClauseBase, ExpressionBase } from './Base';
 import type { ConditionParams } from './ConditionParams';

@@ -1,4 +1,4 @@
-import type { GenericAny } from '@/core-utils';
+import type { GenericAny } from '../core-utils';
 import { describe, expect, it } from 'vitest';
 import { createDataTypeDecimal } from '../DataType';
 import { createDb, createDbDiscriminator } from '../db-helper';

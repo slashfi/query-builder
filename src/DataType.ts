@@ -1,4 +1,4 @@
-import { compareTypes, filterUndefined, type GenericAny, mapObject } from '@/core-utils';
+import { compareTypes, filterUndefined, type GenericAny, mapObject } from './core-utils';
 import type { DataTypeBase, ExpressionBase } from './Base';
 import type { ConstantForArray } from './constants/ConstantForArray';
 import type { ConstantForBoolean } from './constants/ConstantForBoolean';
