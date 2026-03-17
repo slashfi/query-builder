@@ -50,8 +50,10 @@
     "lint:ci": "biome ci . && yarn lint",
     "lint:fix": "biome check . --write",
     "test": "vitest run",
-    "test:db:setup": "cd examples && docker-compose up -d",
-    "test:db:teardown": "cd examples && docker-compose down",
+    "test:all": "npm run db:up && npm run db:wait && vitest run; npm run db:down",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down -v",
+    "db:wait": "echo 'Waiting for CockroachDB...' && until docker compose exec crdb curl -sf http://localhost:8080/health?ready=1 > /dev/null 2>&1; do sleep 1; done && echo 'CockroachDB ready'",
     "typecheck": "yarn build:tsc"
   },
   "dependencies": {

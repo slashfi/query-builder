@@ -2,6 +2,43 @@
 
 Refer to the [docs](docs/overview.md) for more information.
 
+## Getting started
+
+```bash
+npm install
+```
+
+## Testing
+
+Unit tests (no DB required):
+
+```bash
+npm test
+```
+
+Full test suite including integration tests (requires Docker):
+
+```bash
+npm run test:all
+```
+
+This will:
+1. Start a CockroachDB instance via Docker Compose
+2. Wait for it to be healthy
+3. Run all tests (unit + integration)
+4. Tear down the DB
+
+You can also manage the DB manually:
+
+```bash
+npm run db:up      # Start CockroachDB
+npm run db:wait    # Wait until healthy
+npm test           # Run tests
+npm run db:down    # Stop and clean up
+```
+
+The CockroachDB instance runs on `localhost:26207` (SQL) and `localhost:8080` (Admin UI).
+
 ## Why? - A bit of history on query performance at Slash
 
 Javascript is an ecosystem where server-side frameworks and libraries are fragmented -- it's probably this way because companies have been building enterprise applications in Node for way less time than in other languages. Additionally, as the language of the web, Javascript is truly a language built by an open community where anyone can contribute / build tooling to an unopinionated ecosystem. Today, Drizzle and Prisma are pretty standard defaults in the community and they are both pretty good. We don't use either of these because:
