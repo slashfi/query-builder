@@ -20,7 +20,7 @@ export const queryExecutor = {
   },
 };
 export const db = createDb({
-  query: async (_manager: unknown, queryName: string, sqlString: SqlString) => {
+  query: async (queryName: string, sqlString: SqlString) => {
     return queryExecutor.query(queryName, sqlString);
   },
   runQueriesInTransaction: async () => {},
