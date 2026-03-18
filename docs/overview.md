@@ -36,7 +36,7 @@ The query builder provides a fully type-safe way to build SQL queries in TypeScr
 
 ### Installation
 
-(not relevant in the monorepo)
+
 
 ```bash
 npm install @slashfi/query-builder
