@@ -1,16 +1,309 @@
-# Query builder
+# @slashfi/query-builder
 
-Refer to the [docs](docs/overview.md) for more information.
+A type-safe SQL query builder for TypeScript with first-class support for index hints, schema introspection, and migration generation. Built for CockroachDB, designed to make query performance deterministic.
 
-## Getting started
+## Why?
+
+Most ORMs and query builders treat table names and columns as first-class citizens, but indexes are an afterthought. This means your queries work fine at small scale, then blow up when the SQL planner picks a bad execution plan at 10x data.
+
+This query builder flips that: indexes are first-class. You define your indexes in TypeScript, and the query builder enforces their usage at compile time. No more full table scans hiding in your codebase.
+
+For the full backstory, see [docs/history.md](docs/history.md).
+
+## Features
+
+- **Type-safe queries** — Full TypeScript type safety for selects, inserts, updates, joins, and conditions
+- **Index-safe queries** — `selectFromIndex` enforces correct index usage at compile time
+- **Schema-driven** — Define your tables, columns, and indexes in TypeScript with full type inference
+- **JSON field support** — Type-safe access to nested JSON fields with `accessStringPath`
+- **Transaction support** — First-class transactions with automatic nesting (reuses parent transaction)
+- **Schema introspection** — Introspect your live database and diff against your TypeScript definitions
+- **Migration generation** — Auto-generate TypeORM-compatible migrations from schema diffs
+- **CLI tooling** — `qb generate` and `qb codegen` for schema management workflows
+
+## Installation
 
 ```bash
-npm install
+npm install @slashfi/query-builder
+```
+
+## Quick Start
+
+### 1. Create a database instance
+
+```typescript
+import { createDb, createDbDiscriminator } from '@slashfi/query-builder';
+
+const db = createDb({
+  query: async (queryName, sqlString, manager?) => {
+    const client = manager ?? pool;
+    return client.query(sqlString.getQuery(), sqlString.getParameters());
+  },
+  runQueriesInTransaction: async (runQueries) => {
+    await pool.query('BEGIN');
+    try {
+      await runQueries(pool);
+      await pool.query('COMMIT');
+    } catch (e) {
+      await pool.query('ROLLBACK');
+      throw e;
+    }
+  },
+  discriminator: createDbDiscriminator('app'),
+  getQueryBuilderIndexes: () => import('./generated/types'),
+});
+```
+
+### 2. Define a table
+
+```typescript
+interface UserSchema {
+  id: string;
+  email: string;
+  name: string;
+  createdAt: Date;
+}
+
+const UserTable = {
+  Table: db
+    .buildTableFromSchema<UserSchema>()
+    .tableName('users')
+    .defaultAlias('user')
+    .columns({
+      id: (_) => _.varchar(),
+      email: (_) => _.varchar(),
+      name: (_) => _.varchar(),
+      createdAt: (_) => _.timestamp(),
+    })
+    .primaryKey('id')
+    .indexes(({ table, index }) => ({
+      by_email: index(table.email).unique(),
+      by_created: index(table.createdAt),
+    }))
+    .build(),
+} as const;
+
+// Configure index usage for type-safe index queries
+const userIdx = db.indexConfig(UserTable.Table, {
+  by_email: {
+    strict: { columnsOnly: false },
+  },
+  by_created: {
+    minimumSufficientColumns: ['createdAt'],
+  },
+});
+```
+
+### 3. Query with index safety
+
+```typescript
+// Select using an index — the query builder enforces that you're using
+// a real index and provides type-safe where clauses for its columns
+const user = await db
+  .selectFromIndex(userIdx.by_email)
+  .where({ email: 'user@example.com' })
+  .expectOne();
+
+// Insert with returning
+const newUser = await db
+  .insert(UserTable)
+  .values({
+    id: 'user_1',
+    email: 'new@example.com',
+    name: 'Alice',
+    createdAt: new Date(),
+  })
+  .returning('*')
+  .query();
+```
+
+### 4. Flexible queries with `db.from()`
+
+For queries that don't need index enforcement:
+
+```typescript
+// Select with conditions
+const activeUsers = await db
+  .from(UserTable)
+  .where((_) => _.user.email.equals('user@example.com'))
+  .select((_) => [_.user.id, _.user.email, _.user.name]);
+
+// Joins
+const usersWithPosts = await db
+  .from(UserTable)
+  .leftJoin(PostTable, {
+    on: (_) => _.post.userId.equals(_.user.id),
+  })
+  .select((_) => [_.user.name, _.post.title]);
+
+// Aggregations
+const counts = await db
+  .from(UserTable)
+  .select((_) => [
+    _.user.status,
+    fns.count(_.user.id).as('count'),
+  ])
+  .groupBy((_) => [_.user.status]);
+```
+
+## Column Types
+
+```typescript
+.columns({
+  id: (_) => _.varchar(),
+  email: (_) => _.varchar(),
+  count: (_) => _.int(),
+  amount: (_) => _.float(),
+  isActive: (_) => _.boolean(),
+  createdAt: (_) => _.timestamp(),
+  date: (_) => _.date(),
+  metadata: (_) => _.json(),
+  tags: (_) => _.array(),
+})
+```
+
+## Index Types
+
+```typescript
+.indexes(({ table, index }) => ({
+  // Simple index
+  by_email: index(table.email),
+
+  // Unique index
+  by_email_unique: index(table.email).unique(),
+
+  // Composite index
+  by_org_team: index(table.orgId, table.teamId)
+    .storing(table.email, table.name),
+
+  // Partial index
+  by_active_users: index(table.email)
+    .where(table.status.equals('active')),
+
+  // Index on JSON field
+  by_created: index(
+    table.metadata.accessStringPath((_) => _.createdAt)
+  ),
+}))
+```
+
+## JSON Fields
+
+Type-safe access to nested JSON:
+
+```typescript
+interface UserMetadata {
+  preferences: {
+    theme: 'light' | 'dark';
+    notifications: boolean;
+  };
+  profile: {
+    bio: string;
+  };
+}
+
+// Query on nested JSON
+const darkMode = await db
+  .from(UserTable)
+  .where((_) =>
+    _.user.metadata
+      .accessStringPath((_) => _.preferences.theme)
+      .equals('dark')
+  );
+
+// Select nested fields
+const themes = await db
+  .from(UserTable)
+  .select((_) => [
+    _.user.id,
+    _.user.metadata.accessStringPath((_) => _.preferences.theme).as('theme'),
+  ]);
+```
+
+## Transactions
+
+```typescript
+// Basic transaction
+await db.transaction(async () => {
+  const user = await db
+    .insert(UserTable)
+    .values({ id: 'user_1', email: 'alice@example.com', name: 'Alice', createdAt: new Date() })
+    .returning('*')
+    .query();
+
+  await db
+    .insert(PostTable)
+    .values({ id: 'post_1', userId: user.result[0].id, title: 'Hello', content: 'World', createdAt: new Date() })
+    .query();
+});
+
+// Nested transactions reuse the parent
+await db.transaction(async () => {
+  // parent
+  await db.transaction(async () => {
+    // reuses parent transaction
+  });
+});
+```
+
+## CLI
+
+The query builder ships with a CLI for schema management:
+
+```bash
+# Generate migrations by diffing your TypeScript schemas against the live database
+qb generate --name add-user-email
+
+# Generate migrations for specific tables only
+qb generate --name add-user-email --filter users,posts
+
+# Generate index type metadata for type-safe index queries
+qb codegen
+```
+
+Both commands accept `--config` (`-c`) to specify a config file path (defaults to `qb.config.ts`).
+
+### Configuration
+
+Create a `qb.config.ts` in your project root:
+
+```typescript
+import type { Config } from '@slashfi/query-builder/introspection/config';
+
+export default {
+  database: {
+    host: 'localhost',
+    port: 26257,
+    schema: 'public',
+    user: 'root',
+    password: '',
+    ssl: false,
+    database: 'mydb',
+  },
+  // Glob patterns to find your schema files
+  patterns: ['./**/*.schema.ts'],
+  // Where to output generated migrations
+  migrationsDir: 'migrations',
+  codegen: {
+    outDir: 'generated',
+    fileNames: {
+      types: 'types.ts',
+    },
+  },
+  // Optional features
+  features: {
+    // Use Anthropic to auto-name migrations based on the diff
+    anthropicMigrationNaming: {
+      apiKey: process.env.ANTHROPIC_API_KEY!,
+      model: 'claude-3-5-haiku-latest', // default
+    },
+  },
+} satisfies Config;
 ```
 
 ## Testing
 
-Unit tests (no DB required):
+Unit tests (no database required):
 
 ```bash
 npm test
@@ -22,13 +315,7 @@ Full test suite including integration tests (requires Docker):
 npm run test:all
 ```
 
-This will:
-1. Start a CockroachDB instance via Docker Compose
-2. Wait for it to be healthy
-3. Run all tests (unit + integration)
-4. Tear down the DB
-
-You can also manage the DB manually:
+This will start a CockroachDB instance via Docker Compose, run all tests, and tear it down. You can also manage the database manually:
 
 ```bash
 npm run db:up      # Start CockroachDB
@@ -39,26 +326,15 @@ npm run db:down    # Stop and clean up
 
 The CockroachDB instance runs on `localhost:26207` (SQL) and `localhost:8181` (Admin UI).
 
-## Why? - A bit of history on query performance at Slash
+## Further Reading
 
-Javascript is an ecosystem where server-side frameworks and libraries are fragmented -- it's probably this way because companies have been building enterprise applications in Node for way less time than in other languages. Additionally, as the language of the web, Javascript is truly a language built by an open community where anyone can contribute / build tooling to an unopinionated ecosystem. Today, Drizzle and Prisma are pretty standard defaults in the community and they are both pretty good. We don't use either of these because:
+- [Query Building](docs/query-building.md) — Detailed guide on selects, where clauses, joins, and aggregations
+- [Index Management](docs/index-management.md) — Index types, configuration, and query optimization
+- [Schema Management](docs/schema-management.md) — Schema definition, introspection, and migrations
+- [Advanced Features](docs/advanced-features.md) — JSON fields, custom functions, and expression building
+- [History](docs/history.md) — Why we built this and the journey from TypeORM to here
+- [Contributing](docs/contributing.md) — Development setup and guidelines
 
-1. Prisma is a huge overhead change that we don't need. It has some cool application-side joining (for avoiding some of the issues we've had with server side joins), and does codegen for building strongly typed queries based off your schema. Hard migration to do, not the best fit for us.
-2. Drizzle is a great query builder and does a lot of what we'd want. I felt like we can do better which is why we didn't adopt it. Building in-house let us do a better job around DX, type safety, and let's us progressively build more features that Drizzle might not support. As we updated our DB stack, we knew we needed to make sure we were backwards compatible with TypeORM and the level of control we could have if we were to build our own query builder was unparalleled.
+## License
 
-For Slash, we started off using TypeORM at the beginning of 2021, when both Prisma and Drizzle didn't exist. TypeORM was great for getting started but over time, we found that ORMs weren't a great fit for us over time: 
-- we couldn't write complex queries so we had to resort to raw SQL
-- their migrations runner didn't support enough of our use cases
-- mechanisms such as "save"-ing entities were too abstract and made unnecessary round trips to the database when developers in control knew they didn't need to do it.
-
-Over the next few years, we started using raw queries more and more and shipped whatever worked and got things out the door. As growth continued, we realized that all these complex SQL queries that we could easily express in raw SQL were becoming performance bottlenecks. Queries that ran fine on tables with 100,000 rows blew up when there was 10x the data. We had full table scans left and right, and excessive joins were preventing us from optimizing query speeds.
-
-Fast forward to December 2024, we had most complex queries in check. It turned out that denormalizing data (duplicating it) rather than joining, keeping queries simple were very effective in keeping our database performant. 
-
-> The one thing common thread among every issue that we've ever had is: "scaling is stability's worst enemy". Anything that solved at 1x scale is probably going to break at 10x scale. This isn't a bad problem to have though. In fact, it's probably one of the best problems to have as a startup. Scaling means that we're growing, making more money, and we're solving more problems for more customers.
-
-So in December 2024, as query performance was stabilizing but we were still scaling, we yet again had another query performance issue. We learned that it's very easy to shoot yourself in the foot with most SQL planners. SQL planners add in a form of indetermism into your application code that makes it nearly impossible to predict query performance. Since SQL planners take SQL statement and chooses a plan of execution to fetch data, it may choose a plan that's optimal in the average case or the optimal case, but not very bad in the worst case. Plans are generally based on table statistics and a sudden change in statistics when its recomputed can cause a query a query to take 10-100x longer than it did before. We call this ticking "time bombs" in our codebase.
-
-Our solution to the ticking "time bombs" problem is that we need to make our queries completely deterministic. We can do this by explicitly telling the plan which indexes to use and how to join by using index hints and join hints. There's no reason why table names and columns are first-class citizens in most ORMs and query builders, but indexes are not. We can do better. Our query builder currently supports `selectFromIndex` in order to enforce the use of indexes and to ensure that while we write our SQL queries in the backend, we are always make sure we think about how SQL is accessing our data. The tradeoff we're making here is that changes to how we want to access our data requires changes to indexes and hints, but it should enforce better habits without sacrificing on DX and how fast we can ship features.
-
-
+ISC
